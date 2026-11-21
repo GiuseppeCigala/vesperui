@@ -1,4 +1,4 @@
-"""Run the pywinui automated test suite.
+"""Run the VesperUI automated test suite.
 
 Usage:
     python run_tests.py                    # run every widget test
@@ -16,7 +16,7 @@ TESTS = os.path.join(ROOT, 'tests')
 
 def main(argv):
     if sys.platform != 'win32':
-        sys.stderr.write('pywinui tests require Windows.\n')
+        sys.stderr.write('VesperUI tests require Windows.\n')
         return 1
 
     os.chdir(ROOT)

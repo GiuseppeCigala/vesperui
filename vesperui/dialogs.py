@@ -89,7 +89,7 @@ def _make_ofn(owner, title, filters, initial_dir, buffer, flags,
     return ofn
 
 
-def message_box(text, title='pywinui', style=MB_OK, parent=None):
+def message_box(text, title='VesperUI', style=MB_OK, parent=None):
     """Show a native message box and return the button identifier."""
     return user32.MessageBoxW(_owner(parent), text, title, style)
 

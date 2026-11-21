@@ -3,8 +3,8 @@ import os
 import unittest
 from unittest import mock
 
-import pywinui as ui
-from pywinui import dialogs
+import vesperui as ui
+from vesperui import dialogs
 from tests.helpers import WidgetTestCase
 
 

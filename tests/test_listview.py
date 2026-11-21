@@ -1,6 +1,6 @@
 import ctypes
 
-import pywinui as ui
+import vesperui as ui
 from tests.helpers import WidgetTestCase, WindowTestCase, memory_dc
 
 

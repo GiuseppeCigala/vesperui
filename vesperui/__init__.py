@@ -1,11 +1,11 @@
-"""pywinui - minimal Windows GUI toolkit, pure Python (stdlib/ctypes only).
+"""VesperUI - minimal Windows GUI toolkit, pure Python (stdlib/ctypes only).
 
 Public API. Import this package directly::
 
-    import pywinui as ui
+    import vesperui as ui
 
 The implementation is split across one module per graphical element, with
-shared Win32 bindings and helpers in ``pywinui.common``.
+shared Win32 bindings and helpers in ``vesperui.common``.
 """
 from .common import *  # noqa: F401,F403
 from .common import _clamp, _tri, _SetWndPtr  # noqa: F401

@@ -1,4 +1,4 @@
-import pywinui as ui
+import vesperui as ui
 from tests.helpers import WindowTestCase
 
 

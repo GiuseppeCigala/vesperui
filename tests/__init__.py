@@ -1,1 +1,1 @@
-"""pywinui automated widget tests."""
+"""VesperUI automated widget tests."""

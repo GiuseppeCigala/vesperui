@@ -1,4 +1,4 @@
-"""Interactive showcase for every pywinui widget.
+"""Interactive showcase for every VesperUI widget.
 
 Run ``python showcase.py`` to open the window. Pass ``--check`` to build the
 whole interface, paint it into an off-screen bitmap and exit; this is a fast
@@ -15,7 +15,7 @@ control makes its behaviour immediately visible.
 import os
 import sys
 
-import pywinui as ui
+import vesperui as ui
 
 DEFAULT_ROWS = [
     ['Button', 'owner-drawn', 'click, hover, keyboard'],
@@ -65,7 +65,7 @@ class ShowcaseCanvas(ui.Canvas):
 
 
 def build_app():
-    app = ui.App('pywinui - Widget Showcase', 1180, 820)
+    app = ui.App('VesperUI - Widget Showcase', 1180, 820)
     style = ui.AURORA
     app.root.layout = ui.VBoxLayout(padding=14, spacing=10)
 
@@ -82,7 +82,7 @@ def build_app():
         return ui.Label(text, 12, True, color=style['mid'])
 
     # ---------------------------------------------------------------- header
-    title = ui.Label('pywinui - Widget Showcase', 22, True)
+    title = ui.Label('VesperUI - Widget Showcase', 22, True)
     title.stretch = 1
     header = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=10))
     header.add(title)
@@ -90,7 +90,7 @@ def build_app():
     header.add(ui.Hyperlink(
         'About this demo',
         on_click=lambda: set_status(
-            'All pywinui widgets in one window: hover, click, type, drag, '
+            'All VesperUI widgets in one window: hover, click, type, drag, '
             'press Tab and scroll. Every action updates this status bar.')))
 
     # ------------------------------------------------------------ main frame
@@ -478,7 +478,7 @@ def build_app():
 
     help_menu = app.menubar.add('Help')
     help_menu.add_item('About', lambda: app.info(
-        'pywinui - every widget in a single window.', 'About pywinui'))
+        'VesperUI - every widget in a single window.', 'About VesperUI'))
 
     # ------------------------------------------------------------ animations
     def tick():

@@ -64,7 +64,7 @@ class App:
         self._base_brush = None
         self._paint_rgn = None
         self._timers = []; self._pending_timers = []
-        self._class_name = f'PyWinUI_{id(self)}_{next(_class_ids)}'
+        self._class_name = f'VesperUI_{id(self)}_{next(_class_ids)}'
         self._class_registered = False
         self._class_brush = None
         self._wndproc_ref = WNDPROC(self._wndproc)
@@ -200,7 +200,7 @@ class App:
             w.on_key(None, code)
         self.invalidate()
 
-    def message_box(self, text, title='pywinui', style=0):
+    def message_box(self, text, title='VesperUI', style=0):
         """Show a native message box owned by this window."""
         return dialogs.message_box(text, title, style, self)
 
