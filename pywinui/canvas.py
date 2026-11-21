@@ -6,9 +6,11 @@ from .common import *  # noqa: F401,F403
 # CANVAS
 # ============================================================================
 class Canvas(Widget):
-    def __init__(self, bg=(255, 255, 255)):
+    def __init__(self, bg=(255, 255, 255), width=300, height=200):
         super().__init__(); self.bg = bg; self.items = []
-    def measure(self, app): return (int(300 * app.scale), int(200 * app.scale))
+        self.width = width; self.height = height
+    def measure(self, app):
+        return (int(self.width * app.scale), int(self.height * app.scale))
     def clear(self): self.items.clear()
     def line(self, x1, y1, x2, y2, color=(0, 0, 0), width=1):
         self.items.append(('line', x1, y1, x2, y2, color, width))

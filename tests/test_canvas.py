@@ -27,6 +27,10 @@ class CanvasTests(WidgetTestCase):
         canvas = ui.Canvas()
         self.assertEqual(canvas.measure(self.app), (300, 200))
 
+    def test_custom_measure_size(self):
+        canvas = ui.Canvas(width=420, height=120)
+        self.assertEqual(canvas.measure(self.app), (420, 120))
+
     def test_draw_all_primitives(self):
         canvas = ui.Canvas(bg=(20, 20, 20))
         canvas.line(0, 0, 50, 50, color=(255, 0, 0), width=2)
