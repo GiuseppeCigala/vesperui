@@ -145,3 +145,16 @@ class AppLifecycleTests(WindowTestCase):
         self.assertGreater(button.w, 0)
         app.click_widget(button)
         self.assertEqual(calls, [1])
+
+    def test_recreate_after_destroy(self):
+        app = self.create()
+        app.destroy()
+        app.create(show=False)
+        app.pump()
+        self.assertIsNotNone(app.hwnd)
+        self.assertTrue(ui.user32.IsWindow(app.hwnd))
+
+    def test_class_names_are_unique(self):
+        other = ui.App('other window', 100, 100)
+        self.assertNotEqual(other._class_name, self.app._class_name)
+        other.destroy()

@@ -1,5 +1,7 @@
 """Application object, window procedure and message loop."""
 
+import itertools
+
 from .common import *  # noqa: F401,F403
 from .common import _SetWndPtr
 from .layouts import VBoxLayout
@@ -17,6 +19,9 @@ from .style import AURORA, style_of
 # ============================================================================
 # DOUBLE BUFFER
 # ============================================================================
+_class_ids = itertools.count(1)
+
+
 class _DoubleBuffer:
     def __init__(self):
         self.mdc = None; self.bmp = None; self.old = None; self.w = 0; self.h = 0
@@ -58,7 +63,9 @@ class App:
         self._base_brush = None
         self._paint_rgn = None
         self._timers = []; self._pending_timers = []
-        self._class_name = f'PyWinUI_{id(self)}'
+        self._class_name = f'PyWinUI_{id(self)}_{next(_class_ids)}'
+        self._class_registered = False
+        self._class_brush = None
         self._wndproc_ref = WNDPROC(self._wndproc)
 
     def add(self, w): return self.root.add(w)
@@ -288,16 +295,20 @@ class App:
         return user32.CallWindowProcW(w._orig_wndproc, hwnd, msg, wp, lp)
 
     def _register_class(self):
+        if self._class_registered:
+            return
         wc = WNDCLASSEXW()
         wc.cbSize = ctypes.sizeof(WNDCLASSEXW)
         wc.style = CS_HREDRAW | CS_VREDRAW
         wc.lpfnWndProc = self._wndproc_ref
         wc.hInstance = self.hinstance
         wc.hCursor = user32.LoadCursorW(None, IDC_ARROW)
-        wc.hbrBackground = gdi32.CreateSolidBrush(COLORREF(*self.bg))
+        self._class_brush = gdi32.CreateSolidBrush(COLORREF(*self.bg))
+        wc.hbrBackground = self._class_brush
         wc.lpszClassName = self._class_name
         if not user32.RegisterClassExW(ctypes.byref(wc)):
             raise OSError(ctypes.get_last_error(), "RegisterClassExW")
+        self._class_registered = True
 
     def _wndproc(self, hwnd, msg, wp, lp):
         try: return self._handle(hwnd, msg, wp, lp)
@@ -420,7 +431,10 @@ class App:
             hdr = ctypes.cast(lp, ctypes.POINTER(NMHDR)).contents
             w = self._find_native_by_hwnd(hdr.hwndFrom)
             if isinstance(w, ListView):
-                w._handle_notify(ctypes.c_int(hdr.code).value, lp)
+                code = ctypes.c_int(hdr.code).value
+                if code == NM_CUSTOMDRAW:
+                    return w._draw_list(lp)
+                w._handle_notify(code, lp)
             return 0
 
         if msg == WM_COMMAND:
@@ -443,6 +457,20 @@ class App:
             cb = self.menu_callbacks.get(ctrl)
             if cb: cb()
             return 0
+
+        if msg == WM_MEASUREITEM:
+            mis = ctypes.cast(lp, ctypes.POINTER(MEASUREITEMSTRUCT)).contents
+            if mis.CtlType == ODT_COMBOBOX:
+                mis.itemHeight = max(18, int(24 * self.scale))
+                return 1
+
+        if msg == WM_DRAWITEM:
+            dis = ctypes.cast(lp, ctypes.POINTER(DRAWITEMSTRUCT)).contents
+            if dis.CtlType == ODT_COMBOBOX:
+                w = self._find_native_by_hwnd(dis.hwndItem)
+                if isinstance(w, ComboBox):
+                    w._draw_item(dis)
+                    return 1
 
         if msg == WM_TIMER:
             tid = wp
@@ -549,15 +577,20 @@ class App:
 
     def destroy(self):
         """Close the window and pump until it is gone."""
-        if not self.hwnd:
-            return
-        hwnd = self.hwnd
-        user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
-        for _ in range(100):
-            self.pump()
-            if not user32.IsWindow(hwnd):
-                break
-        self.hwnd = None
+        if self.hwnd:
+            hwnd = self.hwnd
+            user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+            for _ in range(100):
+                self.pump()
+                if not user32.IsWindow(hwnd):
+                    break
+            self.hwnd = None
+        if self._class_registered:
+            user32.UnregisterClassW(self._class_name, self.hinstance)
+            self._class_registered = False
+        if self._class_brush:
+            gdi32.DeleteObject(self._class_brush)
+            self._class_brush = None
 
     def run(self):
         self.create()

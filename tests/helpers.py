@@ -1,5 +1,6 @@
 """Shared test fixtures for the pywinui widget test suite."""
 import unittest
+from contextlib import contextmanager
 
 import pywinui as ui
 import pywinui.app as pkg_app
@@ -7,6 +8,22 @@ import pywinui.app as pkg_app
 # Keep automated tests deterministic: no high-DPI scaling.
 pkg_app.get_window_dpi = lambda hwnd: 96
 ui.user32.GetDpiForSystem = lambda: 96
+
+
+@contextmanager
+def memory_dc(width=400, height=300):
+    """Yield a memory DC so drawing code can be exercised off-screen."""
+    screen = ui.user32.GetDC(None)
+    mdc = ui.gdi32.CreateCompatibleDC(screen)
+    bmp = ui.gdi32.CreateCompatibleBitmap(screen, width, height)
+    old = ui.gdi32.SelectObject(mdc, bmp)
+    try:
+        yield mdc
+    finally:
+        ui.gdi32.SelectObject(mdc, old)
+        ui.gdi32.DeleteObject(bmp)
+        ui.gdi32.DeleteDC(mdc)
+        ui.user32.ReleaseDC(None, screen)
 
 
 class WidgetTestCase(unittest.TestCase):

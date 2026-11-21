@@ -1,5 +1,7 @@
+import ctypes
+
 import pywinui as ui
-from tests.helpers import WidgetTestCase, WindowTestCase
+from tests.helpers import WidgetTestCase, WindowTestCase, memory_dc
 
 
 ROWS = [['one', '1'], ['two', '2'], ['three', '3']]
@@ -65,3 +67,28 @@ class ListViewNativeTests(WindowTestCase):
         self.assertEqual(view.get_selected_index(), -1)
         view.select(0)
         self.assertEqual(view.get_selected_row(), ['only', '0'])
+
+    def test_custom_draw_paths(self):
+        view = self._make()
+        with memory_dc(400, 200) as mdc:
+            cd = ui.NMLVCUSTOMDRAW()
+            cd.nmcd.hdc = mdc
+            cd.nmcd.rc = ui.wintypes.RECT(0, 0, 400, 200)
+            cd.nmcd.dwDrawStage = ui.CDDS_PREPAINT
+            self.assertEqual(view._draw_list(ctypes.addressof(cd)),
+                             ui.CDRF_NOTIFYITEMDRAW)
+
+            view.select(1)
+            cd.nmcd.dwDrawStage = ui.CDDS_PREPAINT
+            view._draw_list(ctypes.addressof(cd))
+            cd.nmcd.dwDrawStage = ui.CDDS_ITEMPREPAINT | ui.CDDS_SUBITEM
+            cd.nmcd.dwItemSpec = 1
+            cd.iSubItem = 0
+            cd.nmcd.rc = ui.wintypes.RECT(0, 20, 400, 40)
+            self.assertEqual(view._draw_list(ctypes.addressof(cd)),
+                             ui.CDRF_SKIPDEFAULT)
+
+            view.set_rows([])
+            cd.nmcd.dwDrawStage = ui.CDDS_PREPAINT
+            self.assertEqual(view._draw_list(ctypes.addressof(cd)),
+                             ui.CDRF_SKIPDEFAULT)

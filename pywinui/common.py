@@ -86,6 +86,26 @@ class NMCUSTOMDRAW(ctypes.Structure):
                 ('dwItemSpec', ctypes.c_size_t), ('uItemState', wintypes.UINT),
                 ('lItemlParam', wintypes.LPARAM)]
 
+class NMLVCUSTOMDRAW(ctypes.Structure):
+    _fields_ = [('nmcd', NMCUSTOMDRAW), ('clrText', wintypes.COLORREF),
+                ('clrTextBk', wintypes.COLORREF), ('iSubItem', ctypes.c_int),
+                ('dwItemType', wintypes.DWORD), ('clrFace', wintypes.COLORREF),
+                ('iIconEffect', ctypes.c_int), ('iIconPhase', ctypes.c_int),
+                ('iPartId', ctypes.c_int), ('iStateId', ctypes.c_int),
+                ('rcText', wintypes.RECT), ('uAlign', wintypes.UINT)]
+
+class DRAWITEMSTRUCT(ctypes.Structure):
+    _fields_ = [('CtlType', wintypes.UINT), ('CtlID', wintypes.UINT),
+                ('itemID', wintypes.UINT), ('itemAction', wintypes.UINT),
+                ('itemState', wintypes.UINT), ('hwndItem', wintypes.HWND),
+                ('hDC', wintypes.HDC), ('rcItem', wintypes.RECT),
+                ('itemData', ctypes.c_size_t)]
+
+class MEASUREITEMSTRUCT(ctypes.Structure):
+    _fields_ = [('CtlType', wintypes.UINT), ('CtlID', wintypes.UINT),
+                ('itemID', wintypes.UINT), ('itemWidth', wintypes.UINT),
+                ('itemHeight', wintypes.UINT), ('itemData', ctypes.c_size_t)]
+
 class TRIVERTEX(ctypes.Structure):
     _fields_ = [('x', wintypes.LONG), ('y', wintypes.LONG),
                 ('Red', wintypes.USHORT), ('Green', wintypes.USHORT),
@@ -109,6 +129,7 @@ WS_GROUP = 0x00020000
 ES_LEFT, ES_MULTILINE, ES_AUTOHSCROLL, ES_AUTOVSCROLL = 0, 0x0004, 0x0080, 0x0040
 BS_AUTOCHECKBOX, BS_AUTORADIOBUTTON = 0x0003, 0x0009
 CBS_DROPDOWNLIST = 0x0003
+CBS_OWNERDRAWFIXED, CBS_HASSTRINGS = 0x0010, 0x0200
 CS_HREDRAW, CS_VREDRAW = 0x0002, 0x0001
 SW_SHOW, SW_HIDE, SW_SHOWNA, IDC_ARROW = 5, 0, 8, 32512
 SWP_NOZORDER, SWP_NOACTIVATE = 0x0004, 0x0010
@@ -116,6 +137,7 @@ SWP_NOREDRAW = 0x0008
 SW_SCROLLCHILDREN, SW_INVALIDATE, SW_ERASE = 0x0001, 0x0002, 0x0004
 WM_CREATE, WM_SIZE, WM_DESTROY, WM_CLOSE = 0x0001, 0x0005, 0x0002, 0x0010
 WM_PAINT, WM_COMMAND, WM_NOTIFY, WM_ERASEBKGND, WM_TIMER = 0x000F, 0x0111, 0x004E, 0x0014, 0x0113
+WM_DRAWITEM, WM_MEASUREITEM = 0x002B, 0x002C
 WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEWHEEL = 0x0200, 0x0201, 0x0202, 0x020A
 WM_KEYDOWN, WM_CHAR, WM_SETFOCUS, WM_DPICHANGED = 0x0100, 0x0102, 0x0007, 0x02E0
 WM_SETFONT, WM_CTLCOLORSTATIC, WM_CTLCOLORBTN, WM_CTLCOLORLISTBOX, WM_CTLCOLOREDIT = \
@@ -174,6 +196,9 @@ CDRF_DODEFAULT = 0x00000000
 CDRF_NEWFONT = 0x00000002
 CDRF_SKIPDEFAULT = 0x00000004
 CDRF_NOTIFYITEMDRAW = 0x00000020
+CDRF_NOTIFYSUBITEMDRAW = 0x00000020
+ODT_COMBOBOX = 3
+ODS_SELECTED = 0x0001
 
 def COLORREF(r, g, b): return r | (g << 8) | (b << 16)
 
@@ -365,6 +390,8 @@ def get_window_dpi(hwnd):
 # ============================================================================
 user32.RegisterClassExW.argtypes = [ctypes.POINTER(WNDCLASSEXW)]
 user32.RegisterClassExW.restype = wintypes.ATOM
+user32.UnregisterClassW.argtypes = [wintypes.LPCWSTR, wintypes.HINSTANCE]
+user32.UnregisterClassW.restype = wintypes.BOOL
 user32.CreateWindowExW.argtypes = [wintypes.DWORD, wintypes.LPCWSTR, wintypes.LPCWSTR,
     wintypes.DWORD, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
     wintypes.HWND, wintypes.HMENU, wintypes.HINSTANCE, wintypes.LPVOID]

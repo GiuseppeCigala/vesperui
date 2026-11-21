@@ -12,6 +12,7 @@ class ListView(_NativeWidget):
         self.rows = [list(r) for r in (rows or [])]; self.on_select = on_select
         self._height = height
         self._header_hwnd = None
+        self._cd_selected = -1
     def _style(self):
         return (WS_CHILD | WS_VISIBLE | WS_TABSTOP
                 | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS)
@@ -80,6 +81,61 @@ class ListView(_NativeWidget):
             gdi32.LineTo(cd.hdc, rc.right, rc.bottom - 1)
             gdi32.SelectObject(cd.hdc, old)
             return CDRF_SKIPDEFAULT
+        return CDRF_DODEFAULT
+
+    def _draw_list(self, lp):
+        """Custom-draw rows with accent selection and alternating bands."""
+        if not self._app:
+            return CDRF_DODEFAULT
+        cd = ctypes.cast(lp, ctypes.POINTER(NMLVCUSTOMDRAW)).contents
+        st = style_of(self._app)
+        stage = cd.nmcd.dwDrawStage
+        hdc = cd.nmcd.hdc
+
+        if stage == CDDS_PREPAINT:
+            self._cd_selected = self.get_selected_index()
+            rc = cd.nmcd.rc
+            user32.FillRect(hdc, ctypes.byref(rc), self._app.get_brush(st['base']))
+            if not self.rows:
+                gdi32.SetBkMode(hdc, TRANSPARENT)
+                gdi32.SetTextColor(hdc, COLORREF(*st['mid']))
+                of = gdi32.SelectObject(hdc, self._app.get_font(13))
+                user32.DrawTextW(hdc, 'No rows to display', -1,
+                                 ctypes.byref(rc),
+                                 DT_CENTER | DT_VCENTER | DT_SINGLELINE)
+                gdi32.SelectObject(hdc, of)
+                return CDRF_SKIPDEFAULT
+            return CDRF_NOTIFYITEMDRAW
+
+        if stage == CDDS_ITEMPREPAINT:
+            return CDRF_NOTIFYSUBITEMDRAW
+
+        if stage == (CDDS_ITEMPREPAINT | CDDS_SUBITEM):
+            item = int(cd.nmcd.dwItemSpec)
+            if not (0 <= item < len(self.rows)):
+                return CDRF_DODEFAULT
+            row = self.rows[item]
+            sub = cd.iSubItem
+            text = row[sub] if 0 <= sub < len(row) else ''
+            selected = (item == self._cd_selected)
+            if selected:
+                bg, fg = st['highlight'], st['highlightedText']
+            else:
+                bg = st['alternateBase'] if item % 2 else st['base']
+                fg = st['windowText']
+            rc = cd.nmcd.rc
+            user32.FillRect(hdc, ctypes.byref(rc), self._app.get_brush(bg))
+            gdi32.SetBkMode(hdc, TRANSPARENT)
+            gdi32.SetTextColor(hdc, COLORREF(*fg))
+            of = gdi32.SelectObject(hdc, self._app.get_font(self.font_size))
+            pad = max(4, int(6 * self._app.scale))
+            text_rc = wintypes.RECT(rc.left + pad, rc.top,
+                                    rc.right - pad, rc.bottom)
+            user32.DrawTextW(hdc, str(text), -1, ctypes.byref(text_rc),
+                             DT_LEFT | DT_VCENTER | DT_SINGLELINE)
+            gdi32.SelectObject(hdc, of)
+            return CDRF_SKIPDEFAULT
+
         return CDRF_DODEFAULT
     def _populate(self):
         for r, row in enumerate(self.rows):

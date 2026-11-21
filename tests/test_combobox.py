@@ -1,5 +1,5 @@
 import pywinui as ui
-from tests.helpers import WidgetTestCase, WindowTestCase
+from tests.helpers import WidgetTestCase, WindowTestCase, memory_dc
 
 
 class ComboBoxHeadlessTests(WidgetTestCase):
@@ -48,3 +48,25 @@ class ComboBoxNativeTests(WindowTestCase):
         box.select(1)
         self.assertEqual(box.current_text(), 'green')
         self.assertEqual(events, [(1, 'green')])
+
+    def test_owner_draw_paths(self):
+        self.create()
+        box = self.add(ui.ComboBox(['red', 'green', 'blue'], index=1))
+        with memory_dc(240, 40) as mdc:
+            field = ui.DRAWITEMSTRUCT()
+            field.CtlType = ui.ODT_COMBOBOX
+            field.hwndItem = box.hwnd
+            field.hDC = mdc
+            field.itemID = 0xFFFFFFFF
+            field.rcItem = ui.wintypes.RECT(0, 0, 180, 28)
+            box._draw_item(field)
+
+            selected = ui.DRAWITEMSTRUCT()
+            selected.CtlType = ui.ODT_COMBOBOX
+            selected.hwndItem = box.hwnd
+            selected.hDC = mdc
+            selected.itemID = 2
+            selected.itemState = ui.ODS_SELECTED
+            selected.rcItem = ui.wintypes.RECT(0, 0, 180, 24)
+            box._draw_item(selected)
+        self.assertEqual(box.current_text(), 'green')

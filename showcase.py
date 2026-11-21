@@ -79,6 +79,7 @@ def build_app():
     title.stretch = 1
     header = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=10))
     header.add(title)
+    header.add(ui.Label('AURORA DARK', 11, True, color=style['highlight']))
     header.add(ui.Hyperlink(
         'About this demo',
         on_click=lambda: set_status(
@@ -103,7 +104,7 @@ def build_app():
         app.invalidate()
         set_status('%s changed to "%s".' % (field, value))
 
-    text_group = ui.GroupBox('Text input',
+    text_group = ui.GroupBox('Text input', bg=style['card'],
                              layout=ui.VBoxLayout(padding=10, spacing=8))
     left.add(text_group)
     name_box = ui.TextBox('Ada Lovelace',
@@ -127,7 +128,7 @@ def build_app():
     text_group.add(ui.Hyperlink('Clear text fields', on_click=clear_text))
 
     # ---------------------------------------------------------- selection box
-    selection = ui.GroupBox('Selection & values',
+    selection = ui.GroupBox('Selection & values', bg=style['card'],
                             layout=ui.VBoxLayout(padding=10, spacing=8))
     left.add(selection)
 
@@ -195,7 +196,8 @@ def build_app():
     selection.add(combo)
 
     # -------------------------------------------------------------- actions
-    actions = ui.GroupBox('Actions', layout=ui.VBoxLayout(padding=10, spacing=8))
+    actions = ui.GroupBox('Actions', bg=style['card'],
+                          layout=ui.VBoxLayout(padding=10, spacing=8))
     left.add(actions)
 
     ping_count = [0]
@@ -222,6 +224,7 @@ def build_app():
 
     # ------------------------------------------------- horizontal overflow
     overflow = ui.GroupBox('Horizontal overflow - drag the bottom scrollbar',
+                           bg=style['card'],
                            layout=ui.VBoxLayout(padding=10, spacing=8))
     left.add(overflow)
     wide_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=8))
@@ -244,7 +247,7 @@ def build_app():
     right.add(tab_info)
 
     # -------------------------------------------------------------- list view
-    list_group = ui.GroupBox('List view',
+    list_group = ui.GroupBox('List view', bg=style['card'],
                              layout=ui.VBoxLayout(padding=10, spacing=8))
     list_group.stretch = 1
     right.add(list_group)
@@ -281,7 +284,7 @@ def build_app():
     list_group.add(list_buttons)
 
     # ----------------------------------------------------------------- canvas
-    canvas_group = ui.GroupBox('Canvas',
+    canvas_group = ui.GroupBox('Canvas', bg=style['card'],
                                layout=ui.VBoxLayout(padding=10, spacing=8))
     right.add(canvas_group)
     canvas = ShowcaseCanvas(bg=style['base'], height=150)
@@ -327,7 +330,9 @@ def build_app():
 
     # ------------------------------------------------------------ status bar
     status = ui.Panel(layout=ui.HBoxLayout(padding=8, spacing=10),
-                      bg=style['card'], radius=8, border=style['border'])
+                      bg=style['card'], radius=8, border=style['border'],
+                      gradient=(ui.lighten(style['card'], 0.045),
+                                style['card']))
     status.add(status_label)
     status.add(ui.Hyperlink('Reset', on_click=lambda: reset_all()))
     status.add(ui.Hyperlink(
