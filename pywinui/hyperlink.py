@@ -29,6 +29,10 @@ class Hyperlink(Widget):
         if vk in (VK_RETURN, VK_SPACE) and self.on_click:
             self.on_click()
 
+    def click(self):
+        if self.on_click:
+            self.on_click()
+
     def draw(self, hdc, app):
         rc = wintypes.RECT(self.x, self.y, self.x + self.w, self.y + self.h)
         color = self.color if self.color is not None else style_of(app)['highlight']

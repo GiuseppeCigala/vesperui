@@ -53,6 +53,20 @@ class ListView(_NativeWidget):
     def get_selected_row(self):
         i = self.get_selected_index()
         return self.rows[i] if 0 <= i < len(self.rows) else None
+
+    def select(self, index):
+        """Select a row programmatically (fires on_select)."""
+        if not (0 <= index < len(self.rows)):
+            return
+        if self.hwnd:
+            item = LVITEMW()
+            item.stateMask = LVIS_SELECTED | LVIS_FOCUSED
+            item.state = LVIS_SELECTED | LVIS_FOCUSED
+            item.iItem = index
+            SendMessagePtrW(self.hwnd, LVM_SETITEMSTATE, index,
+                            ctypes.addressof(item))
+        elif self.on_select:
+            self.on_select(index, self.rows[index])
     def _handle_notify(self, code, lp):
         if code != LVN_ITEMCHANGED: return
         nmlv = ctypes.cast(lp, ctypes.POINTER(NMLISTVIEW)).contents

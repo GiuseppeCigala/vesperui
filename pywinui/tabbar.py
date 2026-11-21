@@ -57,6 +57,9 @@ class TabBar(Widget):
         elif vk == VK_RIGHT:
             self.set_index(self.index + 1)
 
+    def select(self, index):
+        self.set_index(index)
+
     def draw(self, hdc, app):
         self._app = app
         s = app.scale

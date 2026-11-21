@@ -53,6 +53,11 @@ class _NativeWidget(Widget):
     def _post_realize(self, app):
         pass
 
+    def click(self):
+        """Focus the control; concrete native widgets may override."""
+        if self.hwnd:
+            user32.SetFocus(self.hwnd)
+
     def _on_bounds(self):
         if self.hwnd:
             ins = self._inset_px()

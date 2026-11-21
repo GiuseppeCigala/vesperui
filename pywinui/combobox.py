@@ -26,3 +26,9 @@ class ComboBox(_NativeWidget):
         self._initial_index = i
         if self.hwnd: user32.SendMessageW(self.hwnd, CB_SETCURSEL, i, 0)
 
+    def select(self, index):
+        """Select an item programmatically and fire on_change."""
+        self.set_index(index)
+        if self.on_change:
+            self.on_change(index, self.current_text())
+

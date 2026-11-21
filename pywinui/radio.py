@@ -50,6 +50,9 @@ class RadioButton(Widget):
         if vk in (VK_SPACE, VK_RETURN):
             self._select()
 
+    def click(self):
+        self._select()
+
     def draw(self, hdc, app):
         s = app.scale
         st = style_of(app)

@@ -108,6 +108,88 @@ class App:
             rc = wintypes.RECT(int(x), int(y), int(x + w), int(y + h))
             user32.InvalidateRect(self.hwnd, ctypes.byref(rc), False)
 
+    def focus(self, widget):
+        self._set_focus(widget)
+
+    def click_widget(self, widget):
+        return self.click(widget.x + widget.w // 2, widget.y + widget.h // 2)
+
+    def click(self, x, y):
+        """Inject a full click at client coordinates (x, y)."""
+        hit = self.root.hit_test(x, y)
+        if hit is None:
+            self._set_focus(None)
+            return None
+        if isinstance(hit, _NativeWidget):
+            if hit.focusable:
+                self._set_focus(hit)
+            hit.click()
+            return hit
+        self._captured = hit
+        if self.hwnd:
+            user32.SetCapture(self.hwnd)
+        hit.on_mouse_down(x, y)
+        if hit.focusable:
+            self._set_focus(hit)
+        else:
+            self._set_focus(None)
+        hit.on_mouse_up(x, y)
+        self._captured = None
+        if self.hwnd:
+            user32.ReleaseCapture()
+        self.invalidate()
+        return hit
+
+    def move_mouse(self, x, y):
+        """Inject a mouse move, updating hover state and drag targets."""
+        if self._captured:
+            self._captured.on_mouse_move(x, y)
+            return
+        hit = self.root.hit_test(x, y)
+        if hit is not self.hovered:
+            if self.hovered:
+                self.hovered.hovered = False
+            self.hovered = hit
+            if hit:
+                hit.hovered = True
+            self.invalidate()
+        if hit:
+            hit.on_mouse_move(x, y)
+
+    def wheel(self, delta, x=None, y=None):
+        """Inject a wheel event; scrolls the nearest ScrollView ancestor."""
+        w = self.focused if (x is None or y is None) else self.root.hit_test(x, y)
+        while w is not None and not w.on_wheel(delta):
+            w = w.parent
+        return w is not None
+
+    def press_key(self, vk):
+        """Inject a key press into the focused widget (or cycle focus on Tab)."""
+        if vk == VK_TAB:
+            self._cycle_focus(reverse=(user32.GetKeyState(VK_SHIFT) & 0x8000) != 0)
+            self.invalidate()
+            return
+        w = self.focused
+        if w is None:
+            return
+        if isinstance(w, _NativeWidget) and w.hwnd:
+            user32.SendMessageW(w.hwnd, WM_KEYDOWN, vk, 0)
+        else:
+            w.on_key(vk, None)
+        self.invalidate()
+
+    def type_char(self, ch):
+        """Inject a character into the focused widget."""
+        w = self.focused
+        if w is None:
+            return
+        code = ord(ch) if isinstance(ch, str) else int(ch)
+        if isinstance(w, _NativeWidget) and w.hwnd:
+            user32.SendMessageW(w.hwnd, WM_CHAR, code, 0)
+        else:
+            w.on_key(None, code)
+        self.invalidate()
+
     def set_timer(self, ms, callback):
         tid = len(self._timers) + 1; self._timers.append(callback)
         if self.hwnd: user32.SetTimer(self.hwnd, tid, ms, None)
@@ -374,7 +456,24 @@ class App:
 
         return user32.DefWindowProcW(hwnd, msg, wp, lp)
 
-    def run(self):
+    def layout(self):
+        """Re-run layout and realize native children for the current client."""
+        if not self.hwnd:
+            return
+        cr = wintypes.RECT()
+        user32.GetClientRect(self.hwnd, ctypes.byref(cr))
+        self.root.set_bounds(0, 0, cr.right, cr.bottom)
+        self.root.arrange(self)
+        self._realize_all()
+        self.invalidate()
+
+    def create(self, show=True):
+        """Create the window without entering the message loop.
+
+        ``show=False`` keeps it hidden, which is useful for automated tests.
+        """
+        if self.hwnd:
+            return self.hwnd
         init_common_controls()
         self._register_class()
         # Scale the initial size to the system DPI so the window is
@@ -398,9 +497,38 @@ class App:
             None, None, self.hinstance, None)
         if not self.hwnd: raise OSError(ctypes.get_last_error(), "CreateWindowExW")
         user32.SetMenu(self.hwnd, self.menubar.hmenu)
-        user32.ShowWindow(self.hwnd, SW_SHOW); user32.UpdateWindow(self.hwnd)
+        if show:
+            user32.ShowWindow(self.hwnd, SW_SHOW)
+            user32.UpdateWindow(self.hwnd)
         for tid, ms in self._pending_timers: user32.SetTimer(self.hwnd, tid, ms, None)
         self._pending_timers.clear()
+        self.layout()
+        self.pump()
+        return self.hwnd
+
+    def pump(self):
+        """Process all pending messages without blocking (useful for tests)."""
+        m = MSG()
+        while user32.PeekMessageW(ctypes.byref(m), None, 0, 0, PM_REMOVE):
+            if m.message == WM_QUIT:
+                break
+            user32.TranslateMessage(ctypes.byref(m))
+            user32.DispatchMessageW(ctypes.byref(m))
+
+    def destroy(self):
+        """Close the window and pump until it is gone."""
+        if not self.hwnd:
+            return
+        hwnd = self.hwnd
+        user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+        for _ in range(100):
+            self.pump()
+            if not user32.IsWindow(hwnd):
+                break
+        self.hwnd = None
+
+    def run(self):
+        self.create()
         m = MSG()
         while True:
             r = user32.GetMessageW(ctypes.byref(m), None, 0, 0)

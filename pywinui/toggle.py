@@ -39,6 +39,9 @@ class ToggleSwitch(Widget):
         if vk in (VK_SPACE, VK_RETURN):
             self.set_checked(not self.checked)
 
+    def click(self):
+        self.set_checked(not self.checked)
+
     def draw(self, hdc, app):
         s = app.scale
         st = style_of(app)

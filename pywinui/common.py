@@ -113,6 +113,8 @@ WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEWHEEL = 0x0200, 0x0201, 0x02
 WM_KEYDOWN, WM_CHAR, WM_SETFOCUS, WM_DPICHANGED = 0x0100, 0x0102, 0x0007, 0x02E0
 WM_SETFONT, WM_CTLCOLORSTATIC, WM_CTLCOLORBTN, WM_CTLCOLORLISTBOX, WM_CTLCOLOREDIT = \
     0x0030, 0x0138, 0x0135, 0x0134, 0x0133
+WM_QUIT = 0x0012
+PM_NOREMOVE, PM_REMOVE = 0x0000, 0x0001
 EN_CHANGE, BN_CLICKED, CBN_SELCHANGE = 0x0300, 0x0000, 0x0001
 EM_GETSEL, EM_SETSEL = 0x00B0, 0x00B1
 BM_GETCHECK, BM_SETCHECK, BST_CHECKED, BST_UNCHECKED = 0x00F0, 0x00F1, 1, 0
@@ -135,6 +137,7 @@ FW_NORMAL, FW_BOLD = 400, 700
 VK_SHIFT, VK_TAB, VK_RETURN, VK_SPACE = 0x10, 0x09, 0x0D, 0x20
 VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN = 0x25, 0x26, 0x27, 0x28
 GWLP_WNDPROC = -4
+GWL_STYLE = -16
 ICC_LISTVIEW_CLASSES = 0x00000001
 LVS_REPORT, LVS_SINGLESEL, LVS_SHOWSELALWAYS = 0x0001, 0x0004, 0x0008
 LVS_EX_FULLROWSELECT = 0x00000020
@@ -144,6 +147,7 @@ LVM_INSERTITEMW              = LVM_FIRST + 77
 LVM_SETITEMTEXTW             = LVM_FIRST + 116
 LVM_SETCOLUMNWIDTH           = LVM_FIRST + 30
 LVM_GETNEXTITEM              = LVM_FIRST + 12
+LVM_SETITEMSTATE             = LVM_FIRST + 43
 LVM_DELETEALLITEMS           = LVM_FIRST + 9
 LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54
 LVM_SETBKCOLOR              = LVM_FIRST + 44
@@ -152,6 +156,7 @@ LVM_SETTEXTBKCOLOR          = LVM_FIRST + 38
 LVCF_TEXT, LVCF_WIDTH, LVCF_FMT = 0x0004, 0x0002, 0x0001
 LVCFMT_LEFT = 0
 LVIF_TEXT, LVIF_STATE, LVIS_SELECTED, LVNI_SELECTED = 0x0001, 0x0008, 0x0002, 0x0002
+LVIS_FOCUSED = 0x0001
 LVN_ITEMCHANGED = -101
 
 def COLORREF(r, g, b): return r | (g << 8) | (b << 16)
@@ -282,6 +287,10 @@ user32.CallWindowProcW.argtypes = [ctypes.c_void_p, wintypes.HWND, wintypes.UINT
 user32.CallWindowProcW.restype = LRESULT
 user32.GetMessageW.argtypes = [ctypes.POINTER(MSG), wintypes.HWND, wintypes.UINT, wintypes.UINT]
 user32.GetMessageW.restype = ctypes.c_int
+user32.PeekMessageW.argtypes = [ctypes.POINTER(MSG), wintypes.HWND, wintypes.UINT,
+                                wintypes.UINT, wintypes.UINT]
+user32.PeekMessageW.restype = wintypes.BOOL
+user32.IsWindow.argtypes = [wintypes.HWND]; user32.IsWindow.restype = wintypes.BOOL
 user32.TranslateMessage.argtypes = [ctypes.POINTER(MSG)]
 user32.DispatchMessageW.argtypes = [ctypes.POINTER(MSG)]
 user32.DispatchMessageW.restype = LRESULT
@@ -344,6 +353,8 @@ user32.GetWindowTextLengthW.restype = ctypes.c_int
 user32.SetTimer.argtypes = [wintypes.HWND, ctypes.c_size_t, wintypes.UINT, ctypes.c_void_p]
 user32.SetTimer.restype = ctypes.c_size_t
 user32.KillTimer.argtypes = [wintypes.HWND, ctypes.c_size_t]
+user32.GetWindowLongW.argtypes = [wintypes.HWND, ctypes.c_int]
+user32.GetWindowLongW.restype = wintypes.LONG
 
 _SetWndPtr = getattr(user32, 'SetWindowLongPtrW', user32.SetWindowLongW)
 _SetWndPtr.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_void_p]

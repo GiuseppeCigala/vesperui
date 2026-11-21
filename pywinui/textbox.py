@@ -21,7 +21,18 @@ class TextBox(_NativeWidget):
         buf = ctypes.create_unicode_buffer(n + 1)
         user32.GetWindowTextW(self.hwnd, buf, n + 1)
         return buf.value
-    def set_text(self, t):
+    def set_text(self, t, notify=True):
         self._text = t
-        if self.hwnd: user32.SetWindowTextW(self.hwnd, t)
+        if self.hwnd:
+            user32.SetWindowTextW(self.hwnd, t)
+        elif notify and self.on_change:
+            self.on_change(t)
+
+    def type_text(self, text):
+        """Simulate typing text into the control."""
+        if self.hwnd:
+            for ch in text:
+                user32.SendMessageW(self.hwnd, WM_CHAR, ord(ch), 0)
+        else:
+            self.set_text(self._text + text, notify=True)
 

@@ -43,6 +43,9 @@ class CheckBox(Widget):
         if vk in (VK_SPACE, VK_RETURN):
             self._toggle()
 
+    def click(self):
+        self._toggle()
+
     def draw(self, hdc, app):
         s = app.scale
         st = style_of(app)
