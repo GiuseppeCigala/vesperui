@@ -23,6 +23,7 @@ DEFAULT_ROWS = [
     ['ComboBox', 'native', 'CBN_SELCHANGE'],
     ['ListView', 'native', 'row selection'],
     ['ToggleSwitch', 'owner-drawn', 'animated knob'],
+    ['Stepper', 'owner-drawn', 'increment and decrement'],
     ['Slider', 'owner-drawn', 'drag and arrow keys'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
     ['ScrollView', 'owner-drawn', 'wheel, drag, clipping'],
@@ -201,6 +202,19 @@ def build_app():
     selection.add(ui.Separator())
     selection.add(caption('COMBO BOX'))
     selection.add(combo)
+
+    quantity_label = ui.Label('Quantity: 3')
+
+    def on_stepper(value):
+        quantity_label.text = 'Quantity: %d' % int(value)
+        app.invalidate()
+        set_status('Stepper value: %d.' % int(value))
+
+    stepper = ui.Stepper(3, min=0, max=10, step=1, on_change=on_stepper)
+    selection.add(ui.Separator())
+    selection.add(caption('STEPPER (0-10)'))
+    selection.add(stepper)
+    selection.add(quantity_label)
 
     # -------------------------------------------------------------- actions
     actions = ui.GroupBox('Actions', bg=style['card'],
@@ -435,6 +449,8 @@ def build_app():
         slider.set_value(0.35)
         volume_progress.set_value(0.35)
         slider_label.text = 'Volume: 35%'
+        stepper.set_value(3, notify=False)
+        quantity_label.text = 'Quantity: 3'
         combo.select(0)
         tab.select(0)
         tab_info.text = 'Tab: ' + tab.items[0]

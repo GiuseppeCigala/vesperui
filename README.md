@@ -22,7 +22,7 @@ app.run()
 - Containers: `Panel`, `GroupBox`, `ScrollView`, `VBoxLayout`, `HBoxLayout`
 - Controls: `Button`, `Label`, `TextBox`, `CheckBox`, `RadioButton`,
   `ComboBox`, `ListView`, `Slider`, `ToggleSwitch`, `ProgressBar`, `TabBar`,
-  `Hyperlink`, `Separator`
+  `Hyperlink`, `Separator`, `Stepper`
 - Graphics: `Canvas`
 - Menus: `MenuBar`, `Menu`
 - Dialogs: `open_file`, `open_files`, `save_file`, `select_folder`, `info`,

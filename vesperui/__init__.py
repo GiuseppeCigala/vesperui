@@ -24,6 +24,7 @@ from .scrollview import ScrollView  # noqa: F401
 from .progress import ProgressBar  # noqa: F401
 from .slider import Slider  # noqa: F401
 from .toggle import ToggleSwitch  # noqa: F401
+from .stepper import Stepper, StepperButton  # noqa: F401
 from .groupbox import GroupBox  # noqa: F401
 from .separator import Separator  # noqa: F401
 from .hyperlink import Hyperlink  # noqa: F401
