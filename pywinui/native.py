@@ -47,8 +47,11 @@ class _NativeWidget(Widget):
     def _apply_window_theme(self, app):
         if not self.hwnd:
             return
-        name = 'DarkMode_Explorer' if is_dark(style_of(app)['windowText']) else ''
-        uxtheme.SetWindowTheme(self.hwnd, name, '')
+        dark = is_dark(style_of(app)['windowText'])
+        name = 'DarkMode_Explorer' if dark else ''
+        if dark:
+            allow_dark_window(self.hwnd)
+        uxtheme.SetWindowTheme(self.hwnd, name, None)
 
     def _post_realize(self, app):
         pass

@@ -34,11 +34,15 @@ class ListView(_NativeWidget):
         if not self.hwnd:
             return
         st = style_of(app)
-        # Disable the Explorer theme so the colours below are honoured,
-        # then draw the header ourselves in _draw_header().
-        uxtheme.SetWindowTheme(self.hwnd, '', '')
+        # Keep the dark Explorer theme so native scrollbars match the UI,
+        # while the header and client background are custom-drawn below.
+        dark = is_dark(st['windowText'])
+        name = 'DarkMode_Explorer' if dark else ''
+        if dark:
+            allow_dark_window(self.hwnd)
+        uxtheme.SetWindowTheme(self.hwnd, name, None)
         if self._header_hwnd:
-            uxtheme.SetWindowTheme(self._header_hwnd, '', '')
+            uxtheme.SetWindowTheme(self._header_hwnd, name, None)
         user32.SendMessageW(self.hwnd, LVM_SETBKCOLOR, 0, COLORREF(*st['base']))
         user32.SendMessageW(self.hwnd, LVM_SETTEXTCOLOR, 0, COLORREF(*st['windowText']))
         user32.SendMessageW(self.hwnd, LVM_SETTEXTBKCOLOR, 0, COLORREF(*st['base']))

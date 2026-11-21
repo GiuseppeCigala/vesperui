@@ -22,6 +22,7 @@ kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
 comctl32 = ctypes.WinDLL('comctl32', use_last_error=True)
 msimg32  = ctypes.WinDLL('msimg32',  use_last_error=True)   # GradientFill lives here
 uxtheme  = ctypes.WinDLL('uxtheme',  use_last_error=True)
+dwmapi   = ctypes.WinDLL('dwmapi',   use_last_error=True)
 
 LRESULT = ctypes.c_ssize_t
 WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT,
@@ -276,6 +277,78 @@ def enable_dpi_awareness():
     except (AttributeError, OSError): pass
     try: user32.SetProcessDPIAware()
     except (AttributeError, OSError): pass
+
+
+def _uxtheme_ordinal(index):
+    try:
+        return uxtheme[index]
+    except (AttributeError, OSError):
+        return None
+
+
+def enable_dark_mode():
+    """Best-effort opt-in to dark native controls (Windows 10 1903+)."""
+    fn = _uxtheme_ordinal(135)          # SetPreferredAppMode
+    if fn is None:
+        return
+    try:
+        fn.argtypes = [ctypes.c_int]
+        fn.restype = ctypes.c_int
+        fn(2)                            # ForceDark
+    except OSError:
+        pass
+
+
+def allow_dark_window(hwnd):
+    """Let a window use the dark Explorer theme (Windows 10 1903+)."""
+    fn = _uxtheme_ordinal(133)           # AllowDarkModeForWindow
+    if fn is None or not hwnd:
+        return
+    try:
+        fn.argtypes = [wintypes.HWND, wintypes.BOOL]
+        fn.restype = wintypes.BOOL
+        fn(hwnd, True)
+    except OSError:
+        pass
+
+
+def flush_menu_themes():
+    """Redraw open menus with the current dark setting."""
+    fn = _uxtheme_ordinal(136)           # FlushMenuThemes
+    if fn is None:
+        return
+    try:
+        fn.argtypes = []
+        fn.restype = None
+        fn()
+    except OSError:
+        pass
+
+
+def set_dark_title_bar(hwnd, bg=None, fg=None):
+    """Ask DWM for a dark title bar (Windows 10 2004+ / Windows 11)."""
+    if not hwnd:
+        return
+    try:
+        dwmapi.DwmSetWindowAttribute.argtypes = [
+            wintypes.HWND, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD]
+        dwmapi.DwmSetWindowAttribute.restype = ctypes.c_long
+        flag = wintypes.BOOL(1)
+        ptr = ctypes.cast(ctypes.byref(flag), ctypes.c_void_p)
+        # 20 = DWMWA_USE_IMMERSIVE_DARK_MODE (19 on some older builds).
+        dwmapi.DwmSetWindowAttribute(hwnd, 19, ptr, ctypes.sizeof(flag))
+        dwmapi.DwmSetWindowAttribute(hwnd, 20, ptr, ctypes.sizeof(flag))
+        if bg is None or fg is None:
+            return
+        # Windows 11 also honors explicit caption, border and text colours.
+        for attribute, color in ((34, bg), (35, bg), (36, fg)):
+            value = ctypes.c_uint(COLORREF(*color))
+            dwmapi.DwmSetWindowAttribute(
+                hwnd, attribute,
+                ctypes.cast(ctypes.byref(value), ctypes.c_void_p),
+                ctypes.sizeof(value))
+    except (AttributeError, OSError):
+        pass
 
 def get_window_dpi(hwnd):
     try:

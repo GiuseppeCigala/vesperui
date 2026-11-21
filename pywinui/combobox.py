@@ -2,6 +2,7 @@
 
 from .common import *  # noqa: F401,F403
 from .native import _NativeWidget
+from .style import style_of
 
 class ComboBox(_NativeWidget):
     _win_class = 'COMBOBOX'
@@ -13,6 +14,13 @@ class ComboBox(_NativeWidget):
         return WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | CBS_DROPDOWNLIST
     def _create_title(self): return ''
     def measure(self, app): return (int(180 * app.scale), int(28 * app.scale))
+    def _apply_window_theme(self, app):
+        if not self.hwnd:
+            return
+        dark = is_dark(style_of(app)['windowText'])
+        if dark:
+            allow_dark_window(self.hwnd)
+        uxtheme.SetWindowTheme(self.hwnd, 'DarkMode_CFD' if dark else '', None)
     def _post_realize(self, app):
         for it in self.items: SendMessageStrW(self.hwnd, CB_ADDSTRING, 0, it)
         if self.items: user32.SendMessageW(self.hwnd, CB_SETCURSEL, self._initial_index, 0)

@@ -43,6 +43,8 @@ class App:
         self.style = dict(AURORA)
         self.bg = bg if bg is not None else self.style['window']
         self.theme_fg = self.style['windowText']
+        if is_dark(self.theme_fg):
+            enable_dark_mode()
         self.root = Panel(layout=VBoxLayout(padding=12, spacing=8))
         self.hwnd = None; self.scale = 1.0
         self._next_cmd = 1000; self._next_ctrl = 2000
@@ -199,6 +201,8 @@ class App:
     def refresh_theme(self):
         self._ctl_brush = None
         self._base_brush = None
+        if is_dark(self.style['windowText']):
+            enable_dark_mode()
         self.invalidate()
         # Force native controls to repaint with the new theme color
         for w in self.root.all_widgets():
@@ -457,6 +461,13 @@ class App:
                 if not self._base_brush:
                     self._base_brush = gdi32.CreateSolidBrush(COLORREF(*st['base']))
                 return self._base_brush
+            # The closed part of a combo box also reports as a static control.
+            w = self._find_native_by_hwnd(lp) if lp else None
+            if isinstance(w, ComboBox):
+                gdi32.SetBkColor(wp, COLORREF(*st['base']))
+                if not self._base_brush:
+                    self._base_brush = gdi32.CreateSolidBrush(COLORREF(*st['base']))
+                return self._base_brush
             gdi32.SetBkColor(wp, COLORREF(*st['window']))
             if not self._ctl_brush:
                 self._ctl_brush = gdi32.CreateSolidBrush(COLORREF(*st['window']))
@@ -507,10 +518,20 @@ class App:
             wx, wy, ww, wh,
             None, None, self.hinstance, None)
         if not self.hwnd: raise OSError(ctypes.get_last_error(), "CreateWindowExW")
+        if is_dark(style_of(self)['windowText']):
+            allow_dark_window(self.hwnd)
+            uxtheme.SetWindowTheme(self.hwnd, 'DarkMode_Explorer', None)
+            set_dark_title_bar(self.hwnd, self.style['window'],
+                               self.style['windowText'])
         user32.SetMenu(self.hwnd, self.menubar.hmenu)
+        if is_dark(style_of(self)['windowText']):
+            flush_menu_themes()
         if show:
             user32.ShowWindow(self.hwnd, SW_SHOW)
             user32.UpdateWindow(self.hwnd)
+            if is_dark(style_of(self)['windowText']):
+                set_dark_title_bar(self.hwnd, self.style['window'],
+                                   self.style['windowText'])
         for tid, ms in self._pending_timers: user32.SetTimer(self.hwnd, tid, ms, None)
         self._pending_timers.clear()
         self.layout()

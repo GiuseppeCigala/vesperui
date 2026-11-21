@@ -49,20 +49,27 @@ class ToggleSwitch(Widget):
         accent = self.accent if self.accent is not None else st['highlight']
         accent2 = st['highlight2']
         if self.checked:
-            if self.hovered:
+            if self.hovered or self.focused:
                 stroke_round_rect(hdc, app, x - 1, y - 1, w + 2, h + 2,
                                   h // 2 + 1, st['glow'], max(2, int(2 * s)))
             fill_round_gradient_h(hdc, app, x, y, w, h, h // 2, accent, accent2)
+            border = accent
         else:
-            fill_round_rect(hdc, app, x, y, w, h, h // 2, st['button'])
-        stroke_round_rect(hdc, app, x, y, w, h, h // 2,
-                          st['border'] if not self.checked else accent,
+            if self.hovered or self.focused:
+                stroke_round_rect(hdc, app, x - 1, y - 1, w + 2, h + 2,
+                                  h // 2 + 1, st['glow'], max(2, int(2 * s)))
+            fill_round_rect(hdc, app, x, y, w, h, h // 2,
+                            mix(st['button'], st['mid'], 0.55))
+            border = st['mid']
+        stroke_round_rect(hdc, app, x, y, w, h, h // 2, border,
                           max(1, int(s)))
 
         margin = max(2, int(2 * s))
         knob_d = max(4, h - 2 * margin)
+        knob_color = mix(st['windowText'], st['mid'], 0.25)
         kx = x + w - knob_d - margin if self.checked else x + margin
         fill_round_rect(hdc, app, kx, y + margin, knob_d, knob_d,
-                        knob_d // 2, st['base'])
+                        knob_d // 2, knob_color)
         stroke_round_rect(hdc, app, kx, y + margin, knob_d, knob_d,
-                          knob_d // 2, st['border'], max(1, int(s)))
+                          knob_d // 2, mix(st['windowText'], st['border'], 0.45),
+                          max(1, int(s)))
