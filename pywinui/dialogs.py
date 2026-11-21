@@ -79,7 +79,7 @@ def _make_ofn(owner, title, filters, initial_dir, buffer, flags,
     ofn.hwndOwner = owner
     ofn.lpstrFilter = _filter_string(filters)
     ofn.nFilterIndex = 1
-    ofn.lpstrFile = ctypes.cast(buffer, wintypes.LPWSTR)
+    ofn.lpstrFile = ctypes.cast(buffer, ctypes.POINTER(ctypes.c_wchar))
     ofn.nMaxFile = len(buffer)
     ofn.lpstrTitle = title
     ofn.lpstrInitialDir = initial_dir
@@ -125,7 +125,7 @@ def open_file(title='Open File', filters=None, initial_dir=None, parent=None):
     flags = (OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST
              | OFN_NOCHANGEDIR | OFN_HIDEREADONLY)
     ofn = _make_ofn(_owner(parent), title, filters, initial_dir, buffer, flags)
-    if not comdlg32.GetOpenFileNameW(ctypes.byref(ofn)):
+    if not comdlg32.GetOpenFileNameW(ctypes.pointer(ofn)):
         return None
     return buffer.value
 
@@ -138,7 +138,7 @@ def open_files(title='Open Files', filters=None, initial_dir=None,
     flags = (OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST
              | OFN_NOCHANGEDIR | OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT)
     ofn = _make_ofn(_owner(parent), title, filters, initial_dir, buffer, flags)
-    if not comdlg32.GetOpenFileNameW(ctypes.byref(ofn)):
+    if not comdlg32.GetOpenFileNameW(ctypes.pointer(ofn)):
         return []
     return _parse_multi_selection(buffer[:])
 
@@ -156,7 +156,7 @@ def save_file(title='Save File', default_name='', default_ext='',
              | OFN_NOCHANGEDIR)
     ofn = _make_ofn(_owner(parent), title, filters, initial_dir, buffer,
                     flags, default_ext)
-    if not comdlg32.GetSaveFileNameW(ctypes.byref(ofn)):
+    if not comdlg32.GetSaveFileNameW(ctypes.pointer(ofn)):
         return None
     return buffer.value
 
@@ -169,7 +169,7 @@ def select_folder(title='Select Folder', parent=None):
     browse.pszDisplayName = ctypes.cast(display, wintypes.LPWSTR)
     browse.lpszTitle = title
     browse.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_EDITBOX
-    pidl = shell32.SHBrowseForFolderW(ctypes.byref(browse))
+    pidl = shell32.SHBrowseForFolderW(ctypes.pointer(browse))
     if not pidl:
         return None
     try:

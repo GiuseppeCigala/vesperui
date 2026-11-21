@@ -117,7 +117,7 @@ class OPENFILENAMEW(ctypes.Structure):
                 ('lpstrCustomFilter', wintypes.LPWSTR),
                 ('nMaxCustFilter', wintypes.DWORD),
                 ('nFilterIndex', wintypes.DWORD),
-                ('lpstrFile', wintypes.LPWSTR),
+                ('lpstrFile', ctypes.POINTER(ctypes.c_wchar)),
                 ('nMaxFile', wintypes.DWORD),
                 ('lpstrFileTitle', wintypes.LPWSTR),
                 ('nMaxFileTitle', wintypes.DWORD),
