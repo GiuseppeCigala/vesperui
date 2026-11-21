@@ -23,6 +23,9 @@ comctl32 = ctypes.WinDLL('comctl32', use_last_error=True)
 msimg32  = ctypes.WinDLL('msimg32',  use_last_error=True)   # GradientFill lives here
 uxtheme  = ctypes.WinDLL('uxtheme',  use_last_error=True)
 dwmapi   = ctypes.WinDLL('dwmapi',   use_last_error=True)
+comdlg32 = ctypes.WinDLL('comdlg32', use_last_error=True)
+shell32  = ctypes.WinDLL('shell32',  use_last_error=True)
+ole32    = ctypes.WinDLL('ole32',    use_last_error=True)
 
 LRESULT = ctypes.c_ssize_t
 WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT,
@@ -105,6 +108,41 @@ class MEASUREITEMSTRUCT(ctypes.Structure):
     _fields_ = [('CtlType', wintypes.UINT), ('CtlID', wintypes.UINT),
                 ('itemID', wintypes.UINT), ('itemWidth', wintypes.UINT),
                 ('itemHeight', wintypes.UINT), ('itemData', ctypes.c_size_t)]
+
+class OPENFILENAMEW(ctypes.Structure):
+    _fields_ = [('lStructSize', wintypes.DWORD),
+                ('hwndOwner', wintypes.HWND),
+                ('hInstance', wintypes.HINSTANCE),
+                ('lpstrFilter', wintypes.LPCWSTR),
+                ('lpstrCustomFilter', wintypes.LPWSTR),
+                ('nMaxCustFilter', wintypes.DWORD),
+                ('nFilterIndex', wintypes.DWORD),
+                ('lpstrFile', wintypes.LPWSTR),
+                ('nMaxFile', wintypes.DWORD),
+                ('lpstrFileTitle', wintypes.LPWSTR),
+                ('nMaxFileTitle', wintypes.DWORD),
+                ('lpstrInitialDir', wintypes.LPCWSTR),
+                ('lpstrTitle', wintypes.LPCWSTR),
+                ('Flags', wintypes.DWORD),
+                ('nFileOffset', wintypes.WORD),
+                ('nFileExtension', wintypes.WORD),
+                ('lpstrDefExt', wintypes.LPCWSTR),
+                ('lCustData', wintypes.LPARAM),
+                ('lpfnHook', ctypes.c_void_p),
+                ('lpTemplateName', wintypes.LPCWSTR),
+                ('pvReserved', ctypes.c_void_p),
+                ('dwReserved', wintypes.DWORD),
+                ('FlagsEx', wintypes.DWORD)]
+
+class BROWSEINFOW(ctypes.Structure):
+    _fields_ = [('hwndOwner', wintypes.HWND),
+                ('pidlRoot', ctypes.c_void_p),
+                ('pszDisplayName', wintypes.LPWSTR),
+                ('lpszTitle', wintypes.LPCWSTR),
+                ('ulFlags', wintypes.UINT),
+                ('lpfn', ctypes.c_void_p),
+                ('lParam', wintypes.LPARAM),
+                ('iImage', ctypes.c_int)]
 
 class TRIVERTEX(ctypes.Structure):
     _fields_ = [('x', wintypes.LONG), ('y', wintypes.LONG),
@@ -431,6 +469,7 @@ user32.DrawFocusRect.argtypes = [wintypes.HDC, ctypes.POINTER(wintypes.RECT)]
 user32.DrawTextW.argtypes = [wintypes.HDC, wintypes.LPCWSTR, ctypes.c_int,
                              ctypes.POINTER(wintypes.RECT), wintypes.UINT]
 user32.MessageBoxW.argtypes = [wintypes.HWND, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.UINT]
+user32.MessageBoxW.restype = ctypes.c_int
 user32.GetKeyState.argtypes = [ctypes.c_int]; user32.GetKeyState.restype = ctypes.c_short
 user32.GetDC.argtypes = [wintypes.HWND]; user32.GetDC.restype = wintypes.HDC
 user32.ReleaseDC.argtypes = [wintypes.HWND, wintypes.HDC]
@@ -468,6 +507,16 @@ user32.GetWindowTextLengthW.restype = ctypes.c_int
 user32.SetTimer.argtypes = [wintypes.HWND, ctypes.c_size_t, wintypes.UINT, ctypes.c_void_p]
 user32.SetTimer.restype = ctypes.c_size_t
 user32.KillTimer.argtypes = [wintypes.HWND, ctypes.c_size_t]
+comdlg32.GetOpenFileNameW.argtypes = [ctypes.POINTER(OPENFILENAMEW)]
+comdlg32.GetOpenFileNameW.restype = wintypes.BOOL
+comdlg32.GetSaveFileNameW.argtypes = [ctypes.POINTER(OPENFILENAMEW)]
+comdlg32.GetSaveFileNameW.restype = wintypes.BOOL
+shell32.SHBrowseForFolderW.argtypes = [ctypes.POINTER(BROWSEINFOW)]
+shell32.SHBrowseForFolderW.restype = ctypes.c_void_p
+shell32.SHGetPathFromIDListW.argtypes = [ctypes.c_void_p, wintypes.LPWSTR]
+shell32.SHGetPathFromIDListW.restype = wintypes.BOOL
+ole32.CoTaskMemFree.argtypes = [ctypes.c_void_p]
+ole32.CoTaskMemFree.restype = None
 user32.GetWindowLongW.argtypes = [wintypes.HWND, ctypes.c_int]
 user32.GetWindowLongW.restype = wintypes.LONG
 uxtheme.SetWindowTheme.argtypes = [wintypes.HWND, wintypes.LPCWSTR,

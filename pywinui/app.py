@@ -15,6 +15,7 @@ from .listview import ListView
 from .scrollview import ScrollView
 from .menu import MenuBar
 from .style import AURORA, style_of
+from . import dialogs
 
 # ============================================================================
 # DOUBLE BUFFER
@@ -198,6 +199,39 @@ class App:
         else:
             w.on_key(None, code)
         self.invalidate()
+
+    def message_box(self, text, title='pywinui', style=0):
+        """Show a native message box owned by this window."""
+        return dialogs.message_box(text, title, style, self)
+
+    def info(self, text, title='Information'):
+        return dialogs.info(text, title, self)
+
+    def warning(self, text, title='Warning'):
+        return dialogs.warning(text, title, self)
+
+    def error(self, text, title='Error'):
+        return dialogs.error(text, title, self)
+
+    def question(self, text, title='Question'):
+        return dialogs.question(text, title, self)
+
+    def ok_cancel(self, text, title='Confirm'):
+        return dialogs.ok_cancel(text, title, self)
+
+    def open_file(self, title='Open File', filters=None, initial_dir=None):
+        return dialogs.open_file(title, filters, initial_dir, self)
+
+    def open_files(self, title='Open Files', filters=None, initial_dir=None):
+        return dialogs.open_files(title, filters, initial_dir, self)
+
+    def save_file(self, title='Save File', default_name='', default_ext='',
+                  filters=None, initial_dir=None):
+        return dialogs.save_file(title, default_name, default_ext, filters,
+                                 initial_dir, self)
+
+    def select_folder(self, title='Select Folder'):
+        return dialogs.select_folder(title, self)
 
     def set_timer(self, ms, callback):
         tid = len(self._timers) + 1; self._timers.append(callback)

@@ -12,6 +12,7 @@ The window is organised in two columns:
 Every callback writes a message to the status bar, so interacting with a
 control makes its behaviour immediately visible.
 """
+import os
 import sys
 
 import pywinui as ui
@@ -25,6 +26,12 @@ DEFAULT_ROWS = [
     ['Slider', 'owner-drawn', 'drag and arrow keys'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
     ['ScrollView', 'owner-drawn', 'wheel, drag, clipping'],
+]
+
+FILE_FILTERS = [
+    ('Python files', '*.py'),
+    ('Text files', '*.txt;*.md'),
+    ('All files', '*.*'),
 ]
 
 
@@ -222,6 +229,74 @@ def build_app():
     actions.add(caption('INDETERMINATE PROGRESS'))
     actions.add(marquee)
 
+    # -------------------------------------------------------------- dialogs
+    dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
+                                layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(dialogs_group)
+    dialog_info = ui.Label('No dialog opened yet.')
+
+    def show_dialog_result(message):
+        dialog_info.text = message
+        app.invalidate()
+        set_status(message)
+
+    def on_info():
+        app.info('This is a native information message box.', 'Information')
+        show_dialog_result('Information message closed.')
+
+    def on_warning():
+        app.warning('This is a native warning message box.', 'Warning')
+        show_dialog_result('Warning message closed.')
+
+    def on_error():
+        app.error('This is a native error message box.', 'Error')
+        show_dialog_result('Error message closed.')
+
+    def on_question():
+        answer = app.question('Do you like the Aurora theme?', 'Question')
+        show_dialog_result('Question answered %s.'
+                           % ('Yes' if answer else 'No'))
+
+    def on_open():
+        path = app.open_file('Open a file', FILE_FILTERS)
+        if path:
+            name_box.set_text(path, notify=False)
+            show_dialog_result('Opened: ' + path)
+        else:
+            show_dialog_result('Open dialog cancelled.')
+
+    def on_save():
+        default = os.path.basename(name_box.get_text().strip()) or 'untitled.txt'
+        path = app.save_file('Save as', default_name=default,
+                             default_ext='txt', filters=FILE_FILTERS)
+        if path:
+            show_dialog_result('Saved as: ' + path)
+        else:
+            show_dialog_result('Save dialog cancelled.')
+
+    def on_folder():
+        path = app.select_folder('Select a folder')
+        if path:
+            show_dialog_result('Folder: ' + path)
+        else:
+            show_dialog_result('Folder dialog cancelled.')
+
+    dialog_row1 = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=8))
+    dialog_row1.add(ui.Button('Info', on_click=on_info))
+    dialog_row1.add(ui.Button('Warning', on_click=on_warning))
+    dialog_row1.add(ui.Button('Error', on_click=on_error))
+    dialog_row2 = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=8))
+    dialog_row2.add(ui.Button('Yes / No', on_click=on_question))
+    dialog_row2.add(ui.Button('Open file...', on_click=on_open))
+    dialog_row2.add(ui.Button('Save as...', on_click=on_save))
+    dialog_row3 = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=8))
+    dialog_row3.add(ui.Button('Select folder...', on_click=on_folder))
+    dialogs_group.add(caption('NATIVE MESSAGE BOXES & FILE DIALOGS'))
+    dialogs_group.add(dialog_row1)
+    dialogs_group.add(dialog_row2)
+    dialogs_group.add(dialog_row3)
+    dialogs_group.add(dialog_info)
+
     # ------------------------------------------------- horizontal overflow
     overflow = ui.GroupBox('Horizontal overflow - drag the bottom scrollbar',
                            bg=style['card'],
@@ -367,6 +442,7 @@ def build_app():
         left.scroll_to(0, 0)
         ping_count[0] = 0
         circle_count[0] = 0
+        dialog_info.text = 'No dialog opened yet.'
         draw_canvas()
         app.invalidate()
         set_status('All widgets reset to their initial state.')
@@ -377,9 +453,9 @@ def build_app():
 
     file_menu = app.menubar.add('File')
     file_menu.add_item('New / Reset', reset_all)
-    file_menu.add_item('Open...', lambda: set_status(
-        'Open clicked (no file dialog in this demo).'))
-    file_menu.add_item('Save', lambda: set_status('Save clicked (demo only).'))
+    file_menu.add_item('Open...', on_open)
+    file_menu.add_item('Save as...', on_save)
+    file_menu.add_item('Select folder...', on_folder)
     file_menu.add_separator()
     file_menu.add_item('Exit', exit_app)
 
@@ -401,8 +477,8 @@ def build_app():
         left.scroll_to(0, 10 ** 9), set_status('Scrolled to bottom.')))
 
     help_menu = app.menubar.add('Help')
-    help_menu.add_item('About', lambda: set_status(
-        'pywinui - every widget in a single window.'))
+    help_menu.add_item('About', lambda: app.info(
+        'pywinui - every widget in a single window.', 'About pywinui'))
 
     # ------------------------------------------------------------ animations
     def tick():
