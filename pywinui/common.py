@@ -79,6 +79,12 @@ class NMLISTVIEW(ctypes.Structure):
                 ('uOldState', wintypes.UINT), ('uChanged', wintypes.UINT),
                 ('ptAction', wintypes.POINT), ('lParam', wintypes.LPARAM)]
 
+class NMCUSTOMDRAW(ctypes.Structure):
+    _fields_ = [('hdr', NMHDR), ('dwDrawStage', wintypes.DWORD),
+                ('hdc', wintypes.HDC), ('rc', wintypes.RECT),
+                ('dwItemSpec', ctypes.c_size_t), ('uItemState', wintypes.UINT),
+                ('lItemlParam', wintypes.LPARAM)]
+
 class TRIVERTEX(ctypes.Structure):
     _fields_ = [('x', wintypes.LONG), ('y', wintypes.LONG),
                 ('Red', wintypes.USHORT), ('Green', wintypes.USHORT),
@@ -148,6 +154,7 @@ LVM_SETITEMTEXTW             = LVM_FIRST + 116
 LVM_SETCOLUMNWIDTH           = LVM_FIRST + 30
 LVM_GETNEXTITEM              = LVM_FIRST + 12
 LVM_SETITEMSTATE             = LVM_FIRST + 43
+LVM_GETHEADER                = LVM_FIRST + 31
 LVM_DELETEALLITEMS           = LVM_FIRST + 9
 LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54
 LVM_SETBKCOLOR              = LVM_FIRST + 44
@@ -158,6 +165,14 @@ LVCFMT_LEFT = 0
 LVIF_TEXT, LVIF_STATE, LVIS_SELECTED, LVNI_SELECTED = 0x0001, 0x0008, 0x0002, 0x0002
 LVIS_FOCUSED = 0x0001
 LVN_ITEMCHANGED = -101
+NM_CUSTOMDRAW = -12
+CDDS_PREPAINT = 0x00000001
+CDDS_ITEMPREPAINT = 0x00010001
+CDDS_SUBITEM = 0x00020000
+CDRF_DODEFAULT = 0x00000000
+CDRF_NEWFONT = 0x00000002
+CDRF_SKIPDEFAULT = 0x00000004
+CDRF_NOTIFYITEMDRAW = 0x00000020
 
 def COLORREF(r, g, b): return r | (g << 8) | (b << 16)
 
@@ -355,6 +370,9 @@ user32.SetTimer.restype = ctypes.c_size_t
 user32.KillTimer.argtypes = [wintypes.HWND, ctypes.c_size_t]
 user32.GetWindowLongW.argtypes = [wintypes.HWND, ctypes.c_int]
 user32.GetWindowLongW.restype = wintypes.LONG
+uxtheme.SetWindowTheme.argtypes = [wintypes.HWND, wintypes.LPCWSTR,
+                                   wintypes.LPCWSTR]
+uxtheme.SetWindowTheme.restype = ctypes.c_long
 
 _SetWndPtr = getattr(user32, 'SetWindowLongPtrW', user32.SetWindowLongW)
 _SetWndPtr.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_void_p]

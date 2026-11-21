@@ -11,12 +11,14 @@ class ListView(_NativeWidget):
         super().__init__(); self.columns = list(columns or [('Column', 200)])
         self.rows = [list(r) for r in (rows or [])]; self.on_select = on_select
         self._height = height
+        self._header_hwnd = None
     def _style(self):
         return (WS_CHILD | WS_VISIBLE | WS_TABSTOP
                 | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS)
     def _create_title(self): return ''
     def measure(self, app): return (int(400 * app.scale), int(self._height * app.scale))
     def _post_realize(self, app):
+        self._header_hwnd = user32.SendMessageW(self.hwnd, LVM_GETHEADER, 0, 0)
         user32.SendMessageW(self.hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
                             LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT)
         for i, (name, width) in enumerate(self.columns):
@@ -32,9 +34,49 @@ class ListView(_NativeWidget):
         if not self.hwnd:
             return
         st = style_of(app)
+        # Disable the Explorer theme so the colours below are honoured,
+        # then draw the header ourselves in _draw_header().
+        uxtheme.SetWindowTheme(self.hwnd, '', '')
+        if self._header_hwnd:
+            uxtheme.SetWindowTheme(self._header_hwnd, '', '')
         user32.SendMessageW(self.hwnd, LVM_SETBKCOLOR, 0, COLORREF(*st['base']))
         user32.SendMessageW(self.hwnd, LVM_SETTEXTCOLOR, 0, COLORREF(*st['windowText']))
         user32.SendMessageW(self.hwnd, LVM_SETTEXTBKCOLOR, 0, COLORREF(*st['base']))
+        if self._header_hwnd:
+            user32.SendMessageW(self._header_hwnd, WM_SETFONT,
+                                app.get_font(13, True), 1)
+
+    def _draw_header(self, lp):
+        """Custom-draw the column header so it matches the dark theme."""
+        if not self._app:
+            return CDRF_DODEFAULT
+        cd = ctypes.cast(lp, ctypes.POINTER(NMCUSTOMDRAW)).contents
+        st = style_of(self._app)
+        if cd.dwDrawStage == CDDS_PREPAINT:
+            rc = cd.rc
+            user32.FillRect(cd.hdc, ctypes.byref(rc),
+                            self._app.get_brush(st['card']))
+            return CDRF_NOTIFYITEMDRAW
+        if cd.dwDrawStage in (CDDS_ITEMPREPAINT,
+                              CDDS_ITEMPREPAINT | CDDS_SUBITEM):
+            index = int(cd.dwItemSpec)
+            title = self.columns[index][0] if index < len(self.columns) else ''
+            rc = cd.rc
+            user32.FillRect(cd.hdc, ctypes.byref(rc),
+                            self._app.get_brush(st['card']))
+            gdi32.SetBkMode(cd.hdc, TRANSPARENT)
+            gdi32.SetTextColor(cd.hdc, COLORREF(*st['windowText']))
+            of = gdi32.SelectObject(cd.hdc, self._app.get_font(13, True))
+            user32.DrawTextW(cd.hdc, title, -1, ctypes.byref(rc),
+                             DT_LEFT | DT_VCENTER | DT_SINGLELINE)
+            gdi32.SelectObject(cd.hdc, of)
+            pen = self._app.get_pen(st['border'], 1)
+            old = gdi32.SelectObject(cd.hdc, pen)
+            gdi32.MoveToEx(cd.hdc, rc.left, rc.bottom - 1, None)
+            gdi32.LineTo(cd.hdc, rc.right, rc.bottom - 1)
+            gdi32.SelectObject(cd.hdc, old)
+            return CDRF_SKIPDEFAULT
+        return CDRF_DODEFAULT
     def _populate(self):
         for r, row in enumerate(self.rows):
             item = LVITEMW(); item.mask = LVIF_TEXT; item.iItem = r; item.iSubItem = 0
@@ -47,6 +89,8 @@ class ListView(_NativeWidget):
         self.rows = [list(r) for r in rows]
         if self.hwnd:
             user32.SendMessageW(self.hwnd, LVM_DELETEALLITEMS, 0, 0); self._populate()
+            if self._app:
+                self._rescale_columns(self._app)
     def get_selected_index(self):
         if not self.hwnd: return -1
         return user32.SendMessageW(self.hwnd, LVM_GETNEXTITEM, -1, LVNI_SELECTED)
@@ -80,10 +124,11 @@ class ListView(_NativeWidget):
             return
         widths = [int(width * app.scale) for _, width in self.columns]
         if widths:
-            # Leave room for the native vertical scrollbar so the last column
-            # does not force a horizontal scrollbar.
+            # Leave room for the native vertical scrollbar only when it is
+            # actually visible, otherwise the last column fills the header.
+            vsb = bool(user32.GetWindowLongW(self.hwnd, GWL_STYLE) & WS_VSCROLL)
             available = max(0, self.w - 2 * self._inset_px()
-                            - user32.GetSystemMetrics(2))
+                            - (user32.GetSystemMetrics(2) if vsb else 0))
             extra = max(0, available - sum(widths))
             widths[-1] += extra
         for i, cw in enumerate(widths):

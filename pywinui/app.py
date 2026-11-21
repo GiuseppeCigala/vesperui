@@ -259,6 +259,17 @@ class App:
         if msg == WM_KEYDOWN and wp == VK_TAB:
             self._cycle_focus(reverse=(user32.GetKeyState(VK_SHIFT) & 0x8000) != 0); return 0
         if msg == WM_SETFOCUS: self._set_focus(w, _from_native=True)
+        if msg == WM_NOTIFY and isinstance(w, ListView):
+            hdr = ctypes.cast(lp, ctypes.POINTER(NMHDR)).contents
+            if (ctypes.c_int(hdr.code).value == NM_CUSTOMDRAW
+                    and hdr.hwndFrom == w._header_hwnd):
+                return w._draw_header(lp)
+        if msg == WM_ERASEBKGND and isinstance(w, ListView):
+            rc = wintypes.RECT()
+            user32.GetClientRect(hwnd, ctypes.byref(rc))
+            user32.FillRect(wp, ctypes.byref(rc),
+                            self.get_brush(style_of(self)['base']))
+            return 1
         if msg == WM_MOUSEWHEEL:
             # Forward the wheel to the nearest ScrollView ancestor so scrolling
             # works even when the pointer is over a native child control.
