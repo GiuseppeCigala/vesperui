@@ -25,6 +25,7 @@ app.run()
   `Hyperlink`, `Separator`, `Stepper`, `ColorPicker`
 - Graphics: `Canvas`
 - Menus: `MenuBar`, `Menu`
+- `ListView` cells can be edited in place by double-clicking them.
 - Dialogs: `open_file`, `open_files`, `save_file`, `select_folder`, `info`,
   `warning`, `error`, `question`, `ok_cancel`
 

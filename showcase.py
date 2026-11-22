@@ -363,7 +363,9 @@ def build_app():
         columns=[('Widget', 160), ('Kind', 100), ('Behaviour', 190)],
         rows=DEFAULT_ROWS, height=180,
         on_select=lambda i, row: set_status(
-            'Selected row %d: %s.' % (i, row[0] if row else '-')))
+            'Selected row %d: %s.' % (i, row[0] if row else '-')),
+        on_edit=lambda i, sub, text: set_status(
+            'Edited row %d, column %d: %s.' % (i + 1, sub + 1, text)))
     list_view.stretch = 1
 
     def add_row():
@@ -389,6 +391,8 @@ def build_app():
     list_buttons.add(ui.Button('Clear', on_click=clear_rows))
     list_group.add(list_view)
     list_group.add(list_buttons)
+    list_group.add(ui.Label('Double-click a cell to edit it - Enter saves, Esc cancels.',
+                            12, color=style['mid']))
 
     # ----------------------------------------------------------------- canvas
     canvas_group = ui.GroupBox('Canvas', bg=style['card'],

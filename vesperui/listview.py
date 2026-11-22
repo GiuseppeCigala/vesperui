@@ -1,18 +1,27 @@
 """Native report-mode list view."""
 
 from .common import *  # noqa: F401,F403
+from .common import _SetWndPtr
 from .native import _NativeWidget
 from .style import style_of
 
 class ListView(_NativeWidget):
     _win_class = 'SysListView32'
     inset = 2
-    def __init__(self, columns=None, rows=None, on_select=None, height=200):
+    def __init__(self, columns=None, rows=None, on_select=None, height=200,
+                 on_edit=None):
         super().__init__(); self.columns = list(columns or [('Column', 200)])
         self.rows = [list(r) for r in (rows or [])]; self.on_select = on_select
+        self.on_edit = on_edit
         self._height = height
         self._header_hwnd = None
         self._cd_selected = -1
+        self._edit_hwnd = None
+        self._edit_item = -1
+        self._edit_subitem = -1
+        self._edit_old = ''
+        self._edit_orig = None
+        self._edit_proc = WNDPROC(self._edit_wndproc)
     def _style(self):
         return (WS_CHILD | WS_VISIBLE | WS_TABSTOP
                 | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS)
@@ -146,6 +155,8 @@ class ListView(_NativeWidget):
                 it = LVITEMW(); it.iSubItem = sub; it.pszText = row[sub]
                 SendMessagePtrW(self.hwnd, LVM_SETITEMTEXTW, r, ctypes.addressof(it))
     def set_rows(self, rows):
+        if self._edit_hwnd:
+            self._end_edit(commit=False)
         self.rows = [list(r) for r in rows]
         if self.hwnd:
             user32.SendMessageW(self.hwnd, LVM_DELETEALLITEMS, 0, 0); self._populate()
@@ -171,7 +182,132 @@ class ListView(_NativeWidget):
                             ctypes.addressof(item))
         elif self.on_select:
             self.on_select(index, self.rows[index])
+
+    def begin_edit(self, item, subitem=0):
+        """Open an in-place editor over the given cell."""
+        if not self.hwnd or not (0 <= item < len(self.rows)):
+            return False
+        app = self._app
+        if app is None:
+            return False
+        if self._edit_hwnd:
+            self._end_edit(commit=True)
+
+        rc = wintypes.RECT()
+        rc.left = LVIR_BOUNDS
+        rc.top = int(subitem)
+        SendMessagePtrW(self.hwnd, LVM_GETSUBITEMRECT, item,
+                        ctypes.addressof(rc))
+        width = rc.right - rc.left
+        height = rc.bottom - rc.top
+        if width <= 0 or height <= 0:
+            return False
+
+        inset = self._inset_px()
+        x = self.x + inset + rc.left
+        y = self.y + inset + rc.top
+        row = self.rows[item]
+        text = row[subitem] if 0 <= subitem < len(row) else ''
+        edit_id = app._next_ctrl
+        app._next_ctrl += 1
+        edit = user32.CreateWindowExW(
+            0, 'EDIT', text,
+            WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT | ES_AUTOHSCROLL,
+            x, y, width, height, app.hwnd, ctypes.c_void_p(edit_id),
+            app.hinstance, None)
+        if not edit:
+            return False
+
+        self._edit_hwnd = edit
+        self._edit_item = item
+        self._edit_subitem = subitem
+        self._edit_old = text
+        user32.SendMessageW(edit, WM_SETFONT, app.get_font(self.font_size), 1)
+        dark = is_dark(style_of(app)['windowText'])
+        if dark:
+            allow_dark_window(edit)
+        uxtheme.SetWindowTheme(edit, 'DarkMode_Explorer' if dark else '', None)
+        self._edit_orig = _SetWndPtr(
+            edit, GWLP_WNDPROC,
+            ctypes.cast(self._edit_proc, ctypes.c_void_p))
+        user32.SendMessageW(edit, EM_SETSEL, 0, -1)
+        user32.SetFocus(edit)
+        return True
+
+    def _end_edit(self, commit=True):
+        edit = self._edit_hwnd
+        if not edit:
+            return
+        item = self._edit_item
+        subitem = self._edit_subitem
+        text = None
+        if commit and user32.IsWindow(edit):
+            size = user32.GetWindowTextLengthW(edit)
+            buffer = ctypes.create_unicode_buffer(size + 1)
+            user32.GetWindowTextW(edit, buffer, size + 1)
+            text = buffer.value
+        self._edit_hwnd = None
+        self._edit_item = self._edit_subitem = -1
+        self._edit_old = ''
+        if user32.IsWindow(edit):
+            user32.DestroyWindow(edit)
+        self._edit_orig = None
+        if self.hwnd and user32.IsWindow(self.hwnd):
+            user32.SetFocus(self.hwnd)
+        if (commit and text is not None and 0 <= item < len(self.rows)
+                and subitem >= 0):
+            row = self.rows[item]
+            while len(row) <= subitem:
+                row.append('')
+            if row[subitem] != text:
+                row[subitem] = text
+                self._set_item_text(item, subitem, text)
+                if self.on_edit:
+                    self.on_edit(item, subitem, text)
+        if self._app:
+            self._app.invalidate()
+
+    def _edit_wndproc(self, hwnd, msg, wp, lp):
+        if msg == WM_KEYDOWN:
+            if wp == VK_RETURN:
+                self._end_edit(commit=True)
+                return 0
+            if wp == VK_ESCAPE:
+                self._end_edit(commit=False)
+                return 0
+            if wp == VK_TAB:
+                self._end_edit(commit=True)
+                return 0
+        if msg == WM_CHAR and wp in (13, 27):
+            self._end_edit(commit=(wp == 13))
+            return 0
+        if msg == WM_KILLFOCUS:
+            self._end_edit(commit=True)
+            return 0
+        if self._edit_orig:
+            return user32.CallWindowProcW(self._edit_orig, hwnd, msg, wp, lp)
+        return user32.DefWindowProcW(hwnd, msg, wp, lp)
+
+    def _set_item_text(self, item, subitem, text):
+        if not self.hwnd:
+            return
+        entry = LVITEMW()
+        entry.iSubItem = subitem
+        entry.pszText = text
+        SendMessagePtrW(self.hwnd, LVM_SETITEMTEXTW, item,
+                        ctypes.addressof(entry))
+
     def _handle_notify(self, code, lp):
+        if code == NM_DBLCLK:
+            nm = ctypes.cast(lp, ctypes.POINTER(NMITEMACTIVATE)).contents
+            hit = LVHITTESTINFO()
+            hit.pt.x = nm.ptAction.x
+            hit.pt.y = nm.ptAction.y
+            item = SendMessagePtrW(self.hwnd, LVM_SUBITEMHITTEST, 0,
+                                   ctypes.addressof(hit))
+            if item >= 0:
+                self.begin_edit(item, hit.iSubItem if hit.iSubItem >= 0 else 0)
+            return
         if code != LVN_ITEMCHANGED: return
         nmlv = ctypes.cast(lp, ctypes.POINTER(NMLISTVIEW)).contents
         newly = ((nmlv.uChanged & LVIF_STATE) and (nmlv.uNewState & LVIS_SELECTED)
@@ -195,6 +331,8 @@ class ListView(_NativeWidget):
             user32.SendMessageW(self.hwnd, LVM_SETCOLUMNWIDTH, i, cw)
 
     def _on_bounds(self):
+        if self._edit_hwnd:
+            self._end_edit(commit=True)
         super()._on_bounds()
         if self.hwnd and self._app:
             self._rescale_columns(self._app)

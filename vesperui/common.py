@@ -77,6 +77,18 @@ class LVITEMW(ctypes.Structure):
                 ('puColumns', ctypes.c_void_p), ('piColFmt', ctypes.c_void_p),
                 ('iGroup', ctypes.c_int)]
 
+class LVHITTESTINFO(ctypes.Structure):
+    _fields_ = [('pt', wintypes.POINT), ('flags', wintypes.UINT),
+                ('iItem', ctypes.c_int), ('iSubItem', ctypes.c_int),
+                ('iGroup', ctypes.c_int)]
+
+class NMITEMACTIVATE(ctypes.Structure):
+    _fields_ = [('hdr', NMHDR), ('iItem', ctypes.c_int),
+                ('iSubItem', ctypes.c_int), ('uNewState', wintypes.UINT),
+                ('uOldState', wintypes.UINT), ('uChanged', wintypes.UINT),
+                ('ptAction', wintypes.POINT), ('lParam', wintypes.LPARAM),
+                ('uKeyFlags', wintypes.UINT)]
+
 class NMLISTVIEW(ctypes.Structure):
     _fields_ = [('hdr', NMHDR), ('iItem', ctypes.c_int),
                 ('iSubItem', ctypes.c_int), ('uNewState', wintypes.UINT),
@@ -178,6 +190,7 @@ WM_PAINT, WM_COMMAND, WM_NOTIFY, WM_ERASEBKGND, WM_TIMER = 0x000F, 0x0111, 0x004
 WM_DRAWITEM, WM_MEASUREITEM = 0x002B, 0x002C
 WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEWHEEL = 0x0200, 0x0201, 0x0202, 0x020A
 WM_KEYDOWN, WM_CHAR, WM_SETFOCUS, WM_DPICHANGED = 0x0100, 0x0102, 0x0007, 0x02E0
+WM_KILLFOCUS = 0x0008
 WM_SETFONT, WM_CTLCOLORSTATIC, WM_CTLCOLORBTN, WM_CTLCOLORLISTBOX, WM_CTLCOLOREDIT = \
     0x0030, 0x0138, 0x0135, 0x0134, 0x0133
 WM_QUIT = 0x0012
@@ -202,6 +215,7 @@ CLEARTYPE_QUALITY = 5
 DEFAULT_CHARSET = 1
 FW_NORMAL, FW_BOLD = 400, 700
 VK_SHIFT, VK_TAB, VK_RETURN, VK_SPACE = 0x10, 0x09, 0x0D, 0x20
+VK_ESCAPE = 0x1B
 VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN = 0x25, 0x26, 0x27, 0x28
 GWLP_WNDPROC = -4
 GWL_STYLE = -16
@@ -216,6 +230,9 @@ LVM_SETCOLUMNWIDTH           = LVM_FIRST + 30
 LVM_GETNEXTITEM              = LVM_FIRST + 12
 LVM_SETITEMSTATE             = LVM_FIRST + 43
 LVM_GETHEADER                = LVM_FIRST + 31
+LVM_GETSUBITEMRECT           = LVM_FIRST + 56
+LVM_SUBITEMHITTEST           = LVM_FIRST + 57
+LVIR_BOUNDS = 0
 LVM_DELETEALLITEMS           = LVM_FIRST + 9
 LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54
 LVM_SETBKCOLOR              = LVM_FIRST + 44
@@ -227,6 +244,7 @@ LVIF_TEXT, LVIF_STATE, LVIS_SELECTED, LVNI_SELECTED = 0x0001, 0x0008, 0x0002, 0x
 LVIS_FOCUSED = 0x0001
 LVN_ITEMCHANGED = -101
 NM_CUSTOMDRAW = -12
+NM_DBLCLK = -3
 CDDS_PREPAINT = 0x00000001
 CDDS_ITEMPREPAINT = 0x00010001
 CDDS_SUBITEM = 0x00020000
@@ -501,6 +519,8 @@ user32.SetMenu.argtypes = [wintypes.HWND, wintypes.HMENU]
 user32.LoadCursorW.argtypes = [wintypes.HINSTANCE, ctypes.c_void_p]
 user32.LoadCursorW.restype = wintypes.HANDLE
 user32.SetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPCWSTR]
+user32.DestroyWindow.argtypes = [wintypes.HWND]
+user32.DestroyWindow.restype = wintypes.BOOL
 user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
 user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
 user32.GetWindowTextLengthW.restype = ctypes.c_int
