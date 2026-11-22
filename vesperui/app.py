@@ -42,6 +42,8 @@ class _DoubleBuffer:
 # APP
 # ============================================================================
 class App:
+    _MOVE_TIMER = 0xF001   # internal timer used while the window is moved
+
     def __init__(self, title='App', width=800, height=600, bg=None):
         enable_dpi_awareness()
         self.hinstance = kernel32.GetModuleHandleW(None)
@@ -388,6 +390,17 @@ class App:
             self.root.set_bounds(0, 0, w, h); self.root.arrange(self); self._realize_all()
             user32.InvalidateRect(hwnd, None, False); return 0
 
+        if msg == WM_ENTERSIZEMOVE:
+            # The modal move/size loop does not dispatch WM_PAINT, so drive a
+            # throttled repaint from a timer to avoid stale black strips.
+            user32.SetTimer(hwnd, self._MOVE_TIMER, 40, None)
+            return 0
+
+        if msg == WM_EXITSIZEMOVE:
+            user32.KillTimer(hwnd, self._MOVE_TIMER)
+            user32.InvalidateRect(hwnd, None, False)
+            return 0
+
         if msg == WM_ERASEBKGND: return 1
 
         if msg == WM_PAINT:
@@ -510,6 +523,10 @@ class App:
 
         if msg == WM_TIMER:
             tid = wp
+            if tid == self._MOVE_TIMER:
+                user32.InvalidateRect(hwnd, None, False)
+                user32.UpdateWindow(hwnd)
+                return 0
             if 1 <= tid <= len(self._timers):
                 try: self._timers[tid - 1]()
                 except Exception:
