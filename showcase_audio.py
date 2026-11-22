@@ -80,7 +80,8 @@ def build_app():
     transport_info = ui.Label('No track loaded.')
 
     def on_transport(command):
-        transport.set_active(command if command in ('play', 'pause') else None)
+        transport.set_active(command if command in ('play', 'pause', 'stop')
+                             else None)
         transport_info.text = 'Transport: %s' % command.upper()
         app.invalidate()
         set_status('Transport command: %s.' % command)
