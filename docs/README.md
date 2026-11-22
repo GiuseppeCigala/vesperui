@@ -10,6 +10,7 @@ single dark visual style.
   callbacks, dialogs, menus, timers and headless testing.
 - [Widget reference](widgets.md) — every widget, its constructor and its main
   methods.
+- [Widget gallery](gallery.md) — one screenshot per widget class.
 - [Styling and themes](styling.md) — `AURORA`, `make_style` and per-widget
   overrides.
 - [Architecture](architecture.md) — module map, layout, painting, input and

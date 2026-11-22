@@ -52,6 +52,15 @@ python tools/capture_screenshots.py
 This renders both showcases off-screen and writes `docs/images/*.png`. It
 requires Pillow, which is installed by the `dev` extra.
 
+To regenerate the individual widget gallery:
+
+```bash
+python tools/capture_widgets.py
+```
+
+This writes one image per widget to `docs/images/widgets/`. Add the new image
+to `docs/gallery.md` and `docs/widgets.md` when you add a widget.
+
 ## Code style
 
 - Follow the existing style: one widget per module, short methods, and

@@ -30,7 +30,7 @@ ui.user32.GetDpiForSystem = lambda: 96
 import showcase_audio
 import showcase_common
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 WM_PRINT = 0x0317
 PRF_NONCLIENT = 0x0002
@@ -102,6 +102,30 @@ def _ancestor_clip(widget, root_w, root_h):
     return left, top, right, bottom
 
 
+def _print_combo_text(hdc, app, widget, inset):
+    """Draw the selected label of an owner-drawn ComboBox into the print DC."""
+    text = widget.current_text()
+    if not text:
+        return
+    style = ui.style_of(app)
+    field_w = max(1, widget.w - 2 * inset - int(30 * app.scale))
+    field_h = max(1, widget.h - 2 * inset)
+    saved = ui.gdi32.SaveDC(hdc)
+    try:
+        rc = wintypes.RECT(0, 0, field_w, field_h)
+        ui.user32.FillRect(hdc, ctypes.byref(rc), app.get_brush(style["base"]))
+        pad = max(4, int(6 * app.scale))
+        text_rc = wintypes.RECT(pad, 0, max(pad, field_w - pad), field_h)
+        ui.gdi32.SetBkMode(hdc, ui.TRANSPARENT)
+        ui.gdi32.SetTextColor(hdc, ui.COLORREF(*style["windowText"]))
+        font = ui.gdi32.SelectObject(hdc, app.get_font(widget.font_size))
+        ui.user32.DrawTextW(hdc, text, -1, ctypes.byref(text_rc),
+                            ui.DT_LEFT | ui.DT_VCENTER | ui.DT_SINGLELINE)
+        ui.gdi32.SelectObject(hdc, font)
+    finally:
+        ui.gdi32.RestoreDC(hdc, saved)
+
+
 def _print_native_controls(hdc, app, width, height):
     """Composite native child controls into the off-screen bitmap."""
     for widget in app.root.all_widgets():
@@ -121,6 +145,8 @@ def _print_native_controls(hdc, app, width, height):
             ui.user32.SendMessageW(
                 hwnd, WM_PRINT, hdc,
                 PRF_NONCLIENT | PRF_CLIENT | PRF_ERASEBKGND | PRF_CHILDREN)
+            if isinstance(widget, ui.ComboBox):
+                _print_combo_text(hdc, app, widget, inset)
         finally:
             ui.gdi32.RestoreDC(hdc, saved)
 
@@ -157,7 +183,18 @@ def _force_client_size(app, width, height):
     app.layout()
 
 
-def capture(app, path, max_width=1400):
+def _trim_bottom(image, bg, padding=18):
+    """Crop empty background rows below the content, keeping the full width."""
+    reference = Image.new("RGB", image.size, bg)
+    diff = ImageChops.difference(image, reference).convert("L")
+    bbox = diff.point(lambda value: 255 if value > 3 else 0).getbbox()
+    if not bbox:
+        return image
+    bottom = min(image.height, bbox[3] + padding)
+    return image.crop((0, 0, image.width, bottom))
+
+
+def capture(app, path, max_width=1400, trim=False):
     app.create(show=False)
     _force_client_size(app, app.width, app.height)
     # Let timers run so animated widgets (spectrum, meters) show real data.
@@ -165,6 +202,7 @@ def capture(app, path, max_width=1400):
         time.sleep(0.08)
         app.pump()
 
+    background = app.bg
     width = max(1, app.root.w)
     height = max(1, app.root.h)
     screen = ui.user32.GetDC(None)
@@ -172,6 +210,8 @@ def capture(app, path, max_width=1400):
     bmp = ui.gdi32.CreateCompatibleBitmap(screen, width, height)
     old = ui.gdi32.SelectObject(mdc, bmp)
     try:
+        rc = wintypes.RECT(0, 0, width, height)
+        ui.user32.FillRect(mdc, ctypes.byref(rc), app.get_brush(app.bg))
         app.root.draw(mdc, app)
         _print_native_controls(mdc, app, width, height)
         image = _bitmap_image(mdc, bmp, width, height)
@@ -186,6 +226,8 @@ def capture(app, path, max_width=1400):
         ratio = max_width / image.width
         image = image.resize((max_width, round(image.height * ratio)),
                              Image.Resampling.LANCZOS)
+    if trim:
+        image = _trim_bottom(image, background)
     image.save(path, "PNG", optimize=True)
     print("%s (%dx%d)" % (path, image.width, image.height))
 

@@ -69,6 +69,9 @@ Regenerate both images from the repository with:
 python tools/capture_screenshots.py
 ```
 
+Every widget class also has its own screenshot in the
+[widget gallery](docs/gallery.md).
+
 ## Quick start
 
 ```python
@@ -209,6 +212,7 @@ exits, which is a fast smoke test for layout and GDI regressions.
 
 - [Getting started](docs/getting-started.md)
 - [Widget reference](docs/widgets.md)
+- [Widget gallery](docs/gallery.md)
 - [Styling and themes](docs/styling.md)
 - [Architecture](docs/architecture.md)
 - [Releasing](docs/releasing.md)

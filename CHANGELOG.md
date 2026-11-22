@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Individual screenshots for every widget class, a widget gallery page and
+  image links from the widget reference.
+- `tools/capture_widgets.py` to regenerate the gallery.
+
 ## [0.1.0] - 2026-11-22
 
 ### Added

@@ -12,9 +12,13 @@ Every widget derives from `vesperui.common.Widget` (containers derive from
 Callbacks follow a simple rule: value widgets receive the new value, action
 widgets receive no arguments.
 
+Screenshots of every widget are in the [widget gallery](gallery.md).
+
 ## Containers
 
 ### `Panel(layout=None, padding=0, bg=None, radius=0, shadow=False, gradient=None, border=None)`
+
+![Panel](images/widgets/panel.png)
 
 Base container. Assign a `VBoxLayout` or `HBoxLayout` to `layout` and call
 `add(widget)` for each child. `shadow=True` draws a soft shadow, `radius`
@@ -22,10 +26,14 @@ controls corner rounding.
 
 ### `GroupBox(title='', layout=None, padding=8, bg=None, border=None, radius=None)`
 
+![GroupBox](images/widgets/group-box.png)
+
 Draws a titled frame around its children. `add()` is forwarded to the inner
 panel.
 
 ### `ScrollView(padding=8, spacing=8, bg=(245, 245, 245))`
+
+![ScrollView](images/widgets/scroll-view.png)
 
 Vertical scrolling container with owner-drawn scrollbars. Mouse wheel, drag
 and keyboard scrolling are handled internally. Native Win32 children are
@@ -35,19 +43,27 @@ clipped to the viewport so they never overlap the scrollbars.
 
 ### `Label(text='', size=14, bold=False, color=None, align='left')`
 
+![Label](images/widgets/label.png)
+
 Owner-drawn text. `align` accepts `'left'`, `'center'` or `'right'`.
 
 ### `Hyperlink(text='', on_click=None, size=13, color=None)`
 
+![Hyperlink](images/widgets/hyperlink.png)
+
 Underlined link-like widget with hover and keyboard activation.
 
 ### `Separator(orientation='h', color=None)`
+
+![Separator](images/widgets/separator.png)
 
 One-pixel divider, horizontal or vertical.
 
 ## Input
 
 ### `TextBox(text='', multiline=False, on_change=None)`
+
+![TextBox](images/widgets/textbox.png)
 
 Native `EDIT` control.
 
@@ -58,14 +74,20 @@ Native `EDIT` control.
 
 ### `CheckBox(text='', checked=False, on_change=None)`
 
+![CheckBox](images/widgets/checkbox.png)
+
 - `is_checked()` / `set_checked(value, notify=True)`
 
 ### `RadioButton(text='', checked=False, on_change=None, group=None)`
+
+![RadioButton](images/widgets/radio-button.png)
 
 Pass the same `group` object to several radio buttons to make them mutually
 exclusive.
 
 ### `ComboBox(items=None, on_change=None, index=0)`
+
+![ComboBox](images/widgets/combo-box.png)
 
 Native combo box. `on_change(index, text)` is called when the selection
 changes.
@@ -75,12 +97,16 @@ changes.
 
 ### `Stepper(value=0, min=0, max=100, step=1, on_change=None, prefix='', suffix='')`
 
+![Stepper](images/widgets/stepper.png)
+
 Numeric control with decrement/increment buttons and keyboard support.
 
 - `set_value(value, notify=True)`, `increment()`, `decrement()`
 - `prefix` and `suffix` surround the displayed value.
 
 ### `ColorPicker(color=(0, 214, 255), on_change=None)`
+
+![ColorPicker](images/widgets/color-picker.png)
 
 Hue/saturation/value picker.
 
@@ -93,10 +119,14 @@ Helper functions are exported as `hsv_to_rgb`, `rgb_to_hsv` and `rgb_to_hex`.
 
 ### `Button(text='', on_click=None, accent=None)`
 
+![Button](images/widgets/button.png)
+
 Owner-drawn button with hover, press, focus ring and Enter/Space activation.
 A custom `accent` color overrides the palette highlight.
 
 ### `ToggleSwitch(checked=False, on_change=None, accent=None)`
+
+![ToggleSwitch](images/widgets/toggle-switch.png)
 
 Animated on/off switch.
 
@@ -104,10 +134,14 @@ Animated on/off switch.
 
 ### `MediaButton(icon='play', on_click=None, size=40, accent=None, active=False)`
 
+![MediaButton](images/widgets/media-button.png)
+
 Transport button. Icons: `'play'`, `'pause'`, `'stop'`, `'ff'`, `'rew'`.
 Set the `active` attribute to highlight the current command.
 
 ### `TransportBar(on_command=None, on_play=None, on_pause=None, on_stop=None, on_ff=None, on_rew=None, spacing=8, button_size=40)`
+
+![TransportBar](images/widgets/transport-bar.png)
 
 A `Panel` containing the five media buttons. Per-command callbacks receive no
 arguments; `on_command(name)` receives the command name.
@@ -118,17 +152,23 @@ arguments; `on_command(name)` receives the command name.
 
 ### `Slider(value=0.0, on_change=None, accent=None, orientation='h')`
 
+![Slider](images/widgets/slider.png)
+
 Continuous slider in the `0.0`–`1.0` range.
 
 - `set_value(value, notify=True)`
 
 ### `ProgressBar(value=0.0, indeterminate=False, show_text=False, accent=None, orientation='h')`
 
+![ProgressBar](images/widgets/progress-bar.png)
+
 - `set_value(value)`
 - `tick(dt=0.03)` — advance the marquee when `indeterminate=True`; call it from
   an `App` timer.
 
 ### `Knob(value=0.0, on_change=None, show_value=True, formatter=None, accent=None)`
+
+![Knob](images/widgets/knob.png)
 
 Rotary control in the `0.0`–`1.0` range.
 
@@ -137,6 +177,8 @@ Rotary control in the `0.0`–`1.0` range.
 - Mouse drag, mouse wheel and arrow keys adjust the value.
 
 ### `MixerSlider(value=0.0, on_change=None, orientation='v', min_db=-60.0, max_db=6.0)`
+
+![MixerSlider](images/widgets/mixer-slider.png)
 
 Mixer-style fader with a large cap and a non-linear dB scale.
 
@@ -147,6 +189,8 @@ Mixer-style fader with a large cap and a non-linear dB scale.
 
 ### `TabBar(items=None, index=0, on_change=None, accent=None)`
 
+![TabBar](images/widgets/tab-bar.png)
+
 Segmented tab strip.
 
 - `set_index(index, notify=True)`, `select(index)`
@@ -154,6 +198,8 @@ Segmented tab strip.
 ## Data
 
 ### `ListView(columns=None, rows=None, on_select=None, height=200, on_edit=None)`
+
+![ListView](images/widgets/list-view.png)
 
 Native `SysListView32` report view.
 
@@ -169,6 +215,8 @@ Native `SysListView32` report view.
 
 ### `VUMeter(value=0.0, on_change=None, label='VU', channel='L', scale=None, peak_hold=True, peak_hold_time=1.1, peak_decay=0.30)`
 
+![VUMeter](images/widgets/vu-meter.png)
+
 Analog needle meter with colored zones. The needle can be dragged or adjusted
 with the arrow keys and mouse wheel.
 
@@ -177,6 +225,8 @@ with the arrow keys and mouse wheel.
 
 ### `LevelMeter(levels=(0.0, 0.0), orientation='v', labels=('L', 'R'), peak_hold=True, peak_hold_time=1.1, peak_decay=0.30, on_change=None, show_db=True)`
 
+![LevelMeter](images/widgets/level-meter.png)
+
 One or two segmented bars with a dB scale. `BarVUMeter` is an alias.
 
 - `set_level(index, value, notify=True)`
@@ -184,6 +234,8 @@ One or two segmented bars with a dB scale. `BarVUMeter` is an alias.
 - `tick(dt=0.05)` — advance peak hold.
 
 ### `SpectrumAnalyzer(bins=96, min_db=-60.0, max_db=-12.0, min_hz=20.0, max_hz=20000.0, attack=0.60, release=0.22, peak_hold_frames=10, peak_decay=0.01, body_color=None, cap_color=None, hot_color=None)`
+
+![SpectrumAnalyzer](images/widgets/spectrum-analyzer.png)
 
 Animated log-frequency spectrum with a dB grid, smoothed levels, transients and
 peak caps.
@@ -195,6 +247,8 @@ peak caps.
 ## Graphics
 
 ### `Canvas(bg=(255, 255, 255), width=300, height=200)`
+
+![Canvas](images/widgets/canvas.png)
 
 Retained-mode drawing surface. Coordinates are local to the canvas.
 
