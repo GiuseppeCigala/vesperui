@@ -23,7 +23,7 @@ app.run()
 - Controls: `Button`, `Label`, `TextBox`, `CheckBox`, `RadioButton`,
   `ComboBox`, `ListView`, `Slider`, `ToggleSwitch`, `ProgressBar`, `TabBar`,
   `Hyperlink`, `Separator`, `Stepper`, `ColorPicker`, `VUMeter`,
-  `LevelMeter`, `MixerSlider`
+  `LevelMeter`, `MixerSlider`, `Knob`
 - Graphics: `Canvas`
 - Menus: `MenuBar`, `Menu`
 - `ListView` cells can be edited in place by double-clicking them.
@@ -37,7 +37,8 @@ peak-hold marker that falls back to the needle after a short hold. The
 `LevelMeter` (alias `BarVUMeter`) draws one or two segmented bars with a
 dB scale in either orientation, with the same peak-hold behaviour. The
 `MixerSlider` is a mixer-style fader with a large cap and a non-linear dB
-scale (6, 0, 5, 10, 15, 20, 30, 40, ∞).
+scale (6, 0, 5, 10, 15, 20, 30, 40, ∞). The `Knob` is a rotary control with
+a dark bezel, an accent ring, a white pointer and a value plate below.
 
 ## Showcase
 

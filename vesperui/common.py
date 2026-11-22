@@ -201,7 +201,7 @@ BM_GETCHECK, BM_SETCHECK, BST_CHECKED, BST_UNCHECKED = 0x00F0, 0x00F1, 1, 0
 CB_ADDSTRING, CB_GETCURSEL, CB_SETCURSEL = 0x0143, 0x0147, 0x014E
 MF_STRING, MF_POPUP, MF_SEPARATOR = 0x0000, 0x0010, 0x0800
 DT_CENTER, DT_RIGHT, DT_VCENTER, DT_SINGLELINE, DT_LEFT = 0x0001, 0x0002, 0x0004, 0x0020, 0
-TRANSPARENT, NULL_BRUSH, SRCCOPY, LOGPIXELSX = 1, 5, 0x00CC0020, 88
+TRANSPARENT, NULL_BRUSH, NULL_PEN, SRCCOPY, LOGPIXELSX = 1, 5, 8, 0x00CC0020, 88
 # Gradient / alpha-blending constants
 GRADIENT_FILL_RECT_H, GRADIENT_FILL_RECT_V = 0x00000000, 0x00000001
 AC_SRC_OVER, AC_SRC_ALPHA = 0x00, 0x01
@@ -591,6 +591,8 @@ msimg32.GradientFill.argtypes = [wintypes.HDC, ctypes.POINTER(TRIVERTEX), wintyp
 msimg32.GradientFill.restype = wintypes.BOOL
 gdi32.CreateRoundRectRgn.argtypes = [ctypes.c_int] * 6
 gdi32.CreateRoundRectRgn.restype = wintypes.HRGN
+gdi32.CreateEllipticRgn.argtypes = [ctypes.c_int] * 4
+gdi32.CreateEllipticRgn.restype = wintypes.HRGN
 gdi32.SelectClipRgn.argtypes = [wintypes.HDC, wintypes.HRGN]
 gdi32.SelectClipRgn.restype = ctypes.c_int
 gdi32.ExtSelectClipRgn.argtypes = [wintypes.HDC, wintypes.HRGN, ctypes.c_int]

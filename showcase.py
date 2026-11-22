@@ -28,6 +28,7 @@ DEFAULT_ROWS = [
     ['VUMeter', 'owner-drawn', 'needle, zones, peak hold'],
     ['LevelMeter', 'owner-drawn', 'stereo bars, dB scale'],
     ['MixerSlider', 'owner-drawn', 'dB fader with a large cap'],
+    ['Knob', 'owner-drawn', 'ring, pointer and value plate'],
     ['Slider', 'owner-drawn', 'horizontal and vertical'],
     ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
@@ -367,6 +368,29 @@ def build_app():
     mixer_group.add(caption('MIXER FADER - DB TAPER'))
     mixer_group.add(mixer_row)
 
+    # ------------------------------------------------------------------- knob
+    knob_group = ui.GroupBox('Knob', bg=style['card'],
+                             layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(knob_group)
+    knob_label = ui.Label('Knob: 50.0 %')
+
+    def on_knob(value):
+        knob_label.text = 'Knob: %s' % knob.value_text()
+        app.invalidate()
+        set_status('Knob: %s.' % knob.value_text())
+
+    knob = ui.Knob(0.5, on_change=on_knob)
+    knob_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=16))
+    knob_row.add(knob)
+    knob_side = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=8))
+    knob_side.stretch = 1
+    knob_side.add(knob_label)
+    knob_side.add(ui.Label('Drag around the dial to rotate it.', 12,
+                           color=style['mid']))
+    knob_row.add(knob_side)
+    knob_group.add(caption('ROTARY KNOB'))
+    knob_group.add(knob_row)
+
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
@@ -594,6 +618,8 @@ def build_app():
         bar_both_label.text = 'Channels: 55% / 72%'
         mixer.set_value(0.0, notify=False)
         mixer_label.text = 'Fader: 0.0 dB'
+        knob.set_value(0.5, notify=False)
+        knob_label.text = 'Knob: 50.0 %'
         color_picker.set_color((0, 214, 255), notify=False)
         color_label.text = 'Color: #00D6FF'
         combo.select(0)
