@@ -192,16 +192,6 @@ class MixerSlider(Widget):
             user32.DrawTextW(hdc, text, -1, ctypes.byref(rc), align)
             gdi32.SelectObject(hdc, of)
 
-    def _background_color(self, app):
-        """Find the background behind the widget, walking up the parents."""
-        node = self.parent
-        while node is not None:
-            bg = getattr(node, 'bg', None)
-            if bg is not None:
-                return bg
-            node = node.parent
-        return getattr(app, 'bg', None) or style_of(app)['window']
-
     def _draw_cap(self, hdc, app, cx, cy, s, st):
         vertical = self.orientation == 'v'
         knob_w = int(34 * s) if vertical else int(52 * s)
@@ -209,19 +199,6 @@ class MixerSlider(Widget):
         kx = cx - knob_w // 2
         ky = cy - knob_h // 2
         radius = max(4, knob_w // 3) if vertical else max(4, knob_h // 3)
-
-        # Soft shadow: many shrinking rounded rectangles fading from the
-        # parent background into the dark, so the halo is blurred instead of
-        # a solid dark block covering the background.
-        base = self._background_color(app)
-        steps = max(6, int(10 * s))
-        for i in range(steps, 0, -1):
-            t = i / (steps + 1.0)
-            strength = 0.03 + 0.30 * (1.0 - t)
-            col = mix(base, (0, 0, 0), strength)
-            fill_round_rect(hdc, app, kx - i + int(2 * s),
-                            ky - i + int(3 * s), knob_w + 2 * i,
-                            knob_h + 2 * i, radius + i, col)
 
         if self.focused or self.hovered or self._dragging:
             stroke_round_rect(hdc, app, kx - 2, ky - 2, knob_w + 4,
