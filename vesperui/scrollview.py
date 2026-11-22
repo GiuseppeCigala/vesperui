@@ -104,27 +104,6 @@ class ScrollView(Container):
                 elif dy < 0:
                     self._app.invalidate_rect(nx, oy + oh + dy, nw, -dy)
 
-    def _invalidate_scrollbars(self, dx, dy):
-        if not self._app:
-            return
-        sw = self._sb_w()
-        if dy and self._has_vsb():
-            self._app.invalidate_rect(self.x + self.w - sw, self.y,
-                                      sw, self._viewport_h())
-        if dx and self._has_hsb():
-            self._app.invalidate_rect(self.x, self.y + self.h - sw,
-                                      self._viewport_w(), sw)
-        if dx and dy and self._has_vsb() and self._has_hsb():
-            self._app.invalidate_rect(self.x + self.w - sw,
-                                      self.y + self.h - sw, sw, sw)
-        radius = int(style_of(self._app).get('radius', 10) * self._app.scale)
-        if radius > 0:
-            for cx, cy in ((self.x, self.y),
-                           (self.x + self.w - radius, self.y),
-                           (self.x, self.y + self.h - radius),
-                           (self.x + self.w - radius, self.y + self.h - radius)):
-                self._app.invalidate_rect(cx, cy, radius, radius)
-
     def scroll_to(self, x, y):
         """Scroll to (x, y), translating children instead of re-laying out."""
         x = max(0.0, min(float(x), self._max_scroll_x()))
@@ -136,25 +115,15 @@ class ScrollView(Container):
         self.scroll_x, self.scroll_y = x, y
         if dx == 0 and dy == 0:
             return False
-        scrolled = False
-        large = (abs(dx) * 2 >= max(1, self._viewport_w())
-                 or abs(dy) * 2 >= max(1, self._viewport_h()))
-        if self._app and self._app.hwnd and not large:
-            vp = wintypes.RECT(self.x, self.y,
-                               self.x + self._viewport_w(),
-                               self.y + self._viewport_h())
-            scrolled = bool(user32.ScrollWindowEx(
-                self._app.hwnd, dx, dy, ctypes.byref(vp), ctypes.byref(vp),
-                None, None, SW_INVALIDATE))
+        # Scroll both the widget coordinates and repaint the whole viewport.
+        # Partial repaints of scrolled strips left 1 px seams under the double
+        # buffer, so a full double-buffered repaint is both simpler and safe.
         moved = []
         for c in self.children:
             self._shift(c, dx, dy, moved)
         self._move_native(moved)
         self._clip_native_to_viewport()
-        if scrolled:
-            self._invalidate_scrollbars(dx, dy)
-        else:
-            self._invalidate()
+        self._invalidate()
         return True
 
     def _clip_native_to_viewport(self):
