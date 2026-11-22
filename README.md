@@ -47,9 +47,14 @@ smoothed levels, transients and peak caps.
 
 ## Showcase
 
+Two separate demos: one for the classic controls and one for the audio
+controls.
+
 ```bash
-python showcase.py
-python showcase.py --check   # off-screen layout and paint smoke test
+python showcase.py             # classic controls
+python showcase_audio.py       # audio controls
+python showcase.py --check     # off-screen layout and paint smoke test
+python showcase_audio.py --check
 ```
 
 ## Tests
