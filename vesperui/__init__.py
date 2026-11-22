@@ -25,6 +25,8 @@ from .progress import ProgressBar  # noqa: F401
 from .slider import Slider  # noqa: F401
 from .toggle import ToggleSwitch  # noqa: F401
 from .stepper import Stepper, StepperButton  # noqa: F401
+from .colorpicker import (ColorPicker, hsv_to_rgb, rgb_to_hsv,  # noqa: F401
+                          rgb_to_hex)
 from .groupbox import GroupBox  # noqa: F401
 from .separator import Separator  # noqa: F401
 from .hyperlink import Hyperlink  # noqa: F401

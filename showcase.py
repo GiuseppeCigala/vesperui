@@ -24,6 +24,7 @@ DEFAULT_ROWS = [
     ['ListView', 'native', 'row selection'],
     ['ToggleSwitch', 'owner-drawn', 'animated knob'],
     ['Stepper', 'owner-drawn', 'increment and decrement'],
+    ['ColorPicker', 'owner-drawn', 'hue, saturation, value'],
     ['Slider', 'owner-drawn', 'drag and arrow keys'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
     ['ScrollView', 'owner-drawn', 'wheel, drag, clipping'],
@@ -215,6 +216,23 @@ def build_app():
     selection.add(caption('STEPPER (0-10)'))
     selection.add(stepper)
     selection.add(quantity_label)
+
+    # ------------------------------------------------------------ color picker
+    color_group = ui.GroupBox('Color picker', bg=style['card'],
+                              layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(color_group)
+    color_label = ui.Label('Color: #00D6FF')
+
+    def on_color(rgb):
+        hex_color = ui.rgb_to_hex(rgb)
+        color_label.text = 'Color: %s' % hex_color
+        app.invalidate()
+        set_status('Color: %s.' % hex_color)
+
+    color_picker = ui.ColorPicker((0, 214, 255), on_change=on_color)
+    color_group.add(caption('HUE STRIP + SATURATION / VALUE'))
+    color_group.add(color_picker)
+    color_group.add(color_label)
 
     # -------------------------------------------------------------- actions
     actions = ui.GroupBox('Actions', bg=style['card'],
@@ -451,6 +469,8 @@ def build_app():
         slider_label.text = 'Volume: 35%'
         stepper.set_value(3, notify=False)
         quantity_label.text = 'Quantity: 3'
+        color_picker.set_color((0, 214, 255), notify=False)
+        color_label.text = 'Color: #00D6FF'
         combo.select(0)
         tab.select(0)
         tab_info.text = 'Tab: ' + tab.items[0]
