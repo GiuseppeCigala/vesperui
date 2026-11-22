@@ -38,6 +38,10 @@ children are stacked vertically by default.
 until the user closes it. Use `app.create()` and `app.pump()` when you want to
 drive the window yourself (for example in tests).
 
+A complete runnable version of this first window is in
+[`examples/hello.py`](../examples/hello.py); run it with
+`python examples/hello.py`.
+
 ## Containers and layouts
 
 A layout is an object assigned to a container's `layout` attribute. It

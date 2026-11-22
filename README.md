@@ -91,6 +91,13 @@ app.run()
 enters the Win32 message loop. Layout is applied automatically on creation,
 resize and when native controls need to be realized.
 
+A complete runnable version is in
+[`examples/hello.py`](examples/hello.py):
+
+```bash
+python examples/hello.py
+```
+
 ## Layout
 
 Containers accept a layout object and a list of children:
@@ -223,6 +230,7 @@ both showcases.
 ```text
 vesperui/            # the installable package, one module per widget
 tests/               # unittest suite (headless and native-window tests)
+examples/            # small runnable applications
 docs/                # user and contributor documentation
 docs/images/         # showcase screenshots used by the README
 tools/               # development utilities (screenshot capture)

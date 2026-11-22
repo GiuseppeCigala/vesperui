@@ -10,6 +10,7 @@ include run_tests.py
 include showcase_common.py
 include showcase_audio.py
 recursive-include tests *.py
+recursive-include examples *.py
 recursive-include docs *.md
 recursive-include docs/images *.png
 recursive-include tools *.py

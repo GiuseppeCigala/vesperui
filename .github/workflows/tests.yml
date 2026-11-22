@@ -39,10 +39,11 @@ jobs:
       - name: Run the unit tests
         run: python run_tests.py -v
 
-      - name: Smoke-test the showcases
+      - name: Smoke-test the showcases and example
         run: |
           python showcase_common.py --check
           python showcase_audio.py --check
+          python examples/hello.py --check
 
   build:
     name: Build distribution

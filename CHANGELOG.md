@@ -31,6 +31,8 @@ and this project adheres to
   `open_file`, `open_files`, `save_file`, `select_folder`.
 - `AURORA` and `FUSION` palettes plus `make_style` for deriving themes.
 - Classic and audio showcases with a headless `--check` smoke mode.
+- Minimal runnable example in `examples/hello.py`, also usable with
+  `--check`.
 - Automated `unittest` suite with 218 tests.
 - Packaging metadata, MIT license, documentation and GitHub workflows.
 
