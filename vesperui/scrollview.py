@@ -16,6 +16,7 @@ class ScrollView(Container):
         self._drag_axis = None; self._drag_start = 0
         self._drag_start_scroll = 0.0; self._sb_hovered = None
         self._native_clip = {}; self._wheel_delta = 0.0
+        self._native_hidden = False
 
     def _scale(self): return self._app.scale if self._app else 1.0
     def _sb_w(self): return int(12 * self._scale())
@@ -91,6 +92,7 @@ class ScrollView(Container):
                                     new[2], new[3], flags)
         for hwnd, old, new in moved:
             user32.InvalidateRect(hwnd, None, False)
+            user32.UpdateWindow(hwnd)
             if self._app:
                 ox, oy, ow, oh = old
                 nx, ny, nw, nh = new
@@ -124,6 +126,10 @@ class ScrollView(Container):
         self._move_native(moved)
         self._clip_native_to_viewport()
         self._invalidate()
+        if moved and self._app and self._app.hwnd:
+            # Native children move immediately: repaint the owner-drawn
+            # background now so their old position never shows through.
+            user32.UpdateWindow(self._app.hwnd)
         return True
 
     def _clip_native_to_viewport(self):
@@ -141,6 +147,8 @@ class ScrollView(Container):
             self._native_clip[hwnd] = state
             if state == 'hidden':
                 user32.ShowWindow(hwnd, SW_HIDE)
+            elif self._native_hidden:
+                return
             elif state == 'full':
                 user32.SetWindowRgn(hwnd, None, True)
                 user32.ShowWindow(hwnd, SW_SHOWNA)
@@ -175,6 +183,18 @@ class ScrollView(Container):
                     walk(child, inner)
         walk(self, clip)
 
+    def _set_natives_hidden(self, hidden):
+        """Hide native children while dragging a scrollbar, then restore the
+        correct clipped state. Moving live HWNDs mid-drag leaves ghost text."""
+        self._native_hidden = hidden
+        if hidden:
+            for w in self.all_widgets():
+                if isinstance(w, _NativeWidget) and w.hwnd:
+                    user32.ShowWindow(w.hwnd, SW_HIDE)
+        else:
+            self._native_clip.clear()
+            self._clip_native_to_viewport()
+
     def hit_test(self, x, y):
         if not self.visible: return None
         if not (self.x <= x < self.x + self.w and self.y <= y < self.y + self.h): return None
@@ -190,16 +210,19 @@ class ScrollView(Container):
         if self._has_vsb() and x >= self.x + self.w - self._sb_w():
             self._drag_axis = 'y'; self._drag_start = y; self._drag_start_scroll = self.scroll_y
             if self._app: self._app.scrolling = True
+            self._set_natives_hidden(True)
             self._invalidate()
         elif self._has_hsb() and y >= self.y + self.h - self._sb_w():
             self._drag_axis = 'x'; self._drag_start = x; self._drag_start_scroll = self.scroll_x
             if self._app: self._app.scrolling = True
+            self._set_natives_hidden(True)
             self._invalidate()
 
     def on_mouse_up(self, x, y):
         if self._drag_axis:
             self._drag_axis = None
             if self._app: self._app.scrolling = False
+            self._set_natives_hidden(False)
             self._invalidate()
 
     def on_mouse_move(self, x, y):
