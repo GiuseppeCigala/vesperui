@@ -5,8 +5,6 @@ build the interface, paint it into an off-screen bitmap and exit.
 
 Left column: transport, spectrum analyzer and analog VU meter.
 Right column: segmented bar meters, mixer fader and rotary knob.
-
-The classic controls live in ``showcase.py``.
 """
 import math
 import os
@@ -14,12 +12,15 @@ import sys
 import time
 
 import vesperui as ui
-from showcase_common import caption as _caption, run
 
 AUDIO_FILTERS = [
     ('Audio files', '*.wav;*.mp3;*.flac;*.ogg;*.m4a'),
     ('All files', '*.*'),
 ]
+
+
+def caption(text, style):
+    return ui.Label(text, 12, True, color=style['mid'])
 
 
 def synthetic_spectrum(bins, t):
@@ -51,9 +52,6 @@ def build_app():
         status_label.text = text
         app.invalidate()
 
-    def caption(text):
-        return _caption(text, style)
-
     title = ui.Label('VesperUI - Audio Controls', 22, True)
     title.stretch = 1
     header = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=10))
@@ -63,8 +61,7 @@ def build_app():
     header.add(ui.Hyperlink(
         'About this demo',
         on_click=lambda: set_status(
-            'Transport, meters, fader, knob and spectrum analyzer. '
-            'Classic controls live in showcase.py.')))
+            'Transport, meters, fader, knob and spectrum analyzer.')))
 
     # ---------------------------------------------------------------- two columns
     main = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=12))
@@ -107,7 +104,7 @@ def build_app():
     transport_side.add(ui.Hyperlink('Load audio file...',
                                     on_click=on_load_audio))
     transport_row.add(transport_side)
-    transport_group.add(caption('REW / PLAY / PAUSE / STOP / FF'))
+    transport_group.add(caption('REW / PLAY / PAUSE / STOP / FF', style))
     transport_group.add(transport_row)
 
     # ----------------------------------------------------------------- spectrum
@@ -115,7 +112,8 @@ def build_app():
                                  layout=ui.VBoxLayout(padding=10, spacing=8))
     left.add(spectrum_group)
     spectrum = ui.SpectrumAnalyzer(bins=96)
-    spectrum_group.add(caption('LOG FREQUENCY - AVERAGE / TRANSIENT / PEAK'))
+    spectrum_group.add(caption(
+        'LOG FREQUENCY - AVERAGE / TRANSIENT / PEAK', style))
     spectrum_group.add(spectrum)
 
     # ---------------------------------------------------------------- analog VU
@@ -137,11 +135,12 @@ def build_app():
     vu_row.add(vu_meter)
     vu_side = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=8))
     vu_side.stretch = 1
-    vu_side.add(caption('LEVEL'))
+    vu_side.add(caption('LEVEL', style))
     vu_side.add(vu_slider)
     vu_side.add(vu_label)
     vu_row.add(vu_side)
-    vu_group.add(caption('NEEDLE + PEAK HOLD - DRAG OR USE THE SLIDER'))
+    vu_group.add(caption('NEEDLE + PEAK HOLD - DRAG OR USE THE SLIDER',
+                         style))
     vu_group.add(vu_row)
 
     # -------------------------------------------------------------- bar meters
@@ -170,7 +169,7 @@ def build_app():
     bar_side.add(ui.Label('Drag a single bar to set that channel.', 12,
                           color=style['mid']))
     bar_row.add(bar_side)
-    bar_group.add(caption('VERTICAL / HORIZONTAL + PEAK HOLD'))
+    bar_group.add(caption('VERTICAL / HORIZONTAL + PEAK HOLD', style))
     bar_group.add(bar_row)
 
     # --------------------------------------------------------------- mixer fader
@@ -195,7 +194,7 @@ def build_app():
     mixer_side.add(ui.Label('Scale: +6 dB down to -∞ dB.', 12,
                             color=style['mid']))
     mixer_row.add(mixer_side)
-    mixer_group.add(caption('MIXER FADER - DB TAPER'))
+    mixer_group.add(caption('MIXER FADER - DB TAPER', style))
     mixer_group.add(mixer_row)
 
     # --------------------------------------------------------------------- knob
@@ -218,7 +217,7 @@ def build_app():
     knob_side.add(ui.Label('Drag around the dial to rotate it.', 12,
                            color=style['mid']))
     knob_row.add(knob_side)
-    knob_group.add(caption('RING + POINTER + VALUE PLATE'))
+    knob_group.add(caption('RING + POINTER + VALUE PLATE', style))
     knob_group.add(knob_row)
 
     # ------------------------------------------------------------------ status
@@ -228,10 +227,6 @@ def build_app():
                                 style['card']))
     status.add(status_label)
     status.add(ui.Hyperlink('Reset', on_click=lambda: reset_all()))
-    status.add(ui.Hyperlink(
-        'Classic showcase',
-        on_click=lambda: set_status(
-            'Run "python showcase.py" for the classic controls.')))
 
     app.root.add(header)
     app.root.add(main)
@@ -288,6 +283,42 @@ def build_app():
 
     app.set_timer(60, tick)
     return app
+
+
+def smoke_check(app):
+    """Create the window hidden, paint all widgets off-screen, then close."""
+    app.create(show=False)
+    for _ in range(3):
+        app.pump()
+
+    width = max(1, app.root.w)
+    height = max(1, app.root.h)
+    screen = ui.user32.GetDC(None)
+    mdc = ui.gdi32.CreateCompatibleDC(screen)
+    bmp = ui.gdi32.CreateCompatibleBitmap(screen, width, height)
+    old = ui.gdi32.SelectObject(mdc, bmp)
+    try:
+        app.root.draw(mdc, app)
+    finally:
+        ui.gdi32.SelectObject(mdc, old)
+        ui.gdi32.DeleteObject(bmp)
+        ui.gdi32.DeleteDC(mdc)
+        ui.user32.ReleaseDC(None, screen)
+
+    widgets = sum(1 for _ in app.root.all_widgets())
+    app.destroy()
+    print('showcase: %d widgets laid out and painted at %dx%d.'
+          % (widgets, width, height))
+    return 0
+
+
+def run(factory, argv):
+    """Build the showcase, honour ``--check`` and run the message loop."""
+    app = factory()
+    if '--check' in argv:
+        return smoke_check(app)
+    app.run()
+    return 0
 
 
 if __name__ == '__main__':
