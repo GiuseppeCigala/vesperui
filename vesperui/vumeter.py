@@ -19,17 +19,25 @@ class VUMeter(Widget):
     """Analog audio level meter: cyan zone up to 0 dB, magenta in the red.
 
     Drag the needle with the mouse or focus the widget and use the arrow
-    keys. The value is always a fraction between 0.0 and 1.0.
+    keys. The value is always a fraction between 0.0 and 1.0. A peak-hold
+    marker remembers the highest level and falls back after a short hold.
     """
 
     def __init__(self, value=0.0, on_change=None, label='VU', channel='L',
-                 scale=None):
+                 scale=None, peak_hold=True, peak_hold_time=1.1,
+                 peak_decay=0.30):
         super().__init__()
         self.value = max(0.0, min(1.0, float(value)))
         self.on_change = on_change
         self.label = label
         self.channel = channel
         self.scale = tuple(scale or DEFAULT_SCALE)
+        self.peak_hold = peak_hold
+        self.peak_hold_time = max(0.0, float(peak_hold_time))
+        self.peak_decay = max(0.0, float(peak_decay))
+        self.peak = self.value
+        self._peak_age = 0.0
+        self._timer = False
         self.focusable = True
         self._app = None
         self._dragging = False
@@ -68,10 +76,37 @@ class VUMeter(Widget):
         value = max(0.0, min(1.0, float(value)))
         changed = value != self.value
         self.value = value
+        if not self.peak_hold:
+            self.peak = value
+        elif value > self.peak:
+            self.peak = value
+            self._peak_age = 0.0
         if changed and notify and self.on_change:
             self.on_change(value)
         self._invalidate()
         return changed
+
+    def reset_peak(self):
+        """Bring the peak marker back onto the current value."""
+        self.peak = self.value
+        self._peak_age = 0.0
+        self._invalidate()
+
+    def tick(self, dt=0.05):
+        """Advance the peak-hold timer; call it from an app timer."""
+        if not self.peak_hold or self.peak <= self.value:
+            self.peak = self.value
+            return False
+        self._peak_age += max(0.0, float(dt))
+        if self._peak_age <= self.peak_hold_time:
+            return False
+        self.peak = max(self.value,
+                        self.peak - self.peak_decay * max(0.0, float(dt)))
+        self._invalidate()
+        return True
+
+    def _on_peak_timer(self):
+        self.tick(0.05)
 
     # ------------------------------------------------------------ interaction
     def on_mouse_down(self, x, y):
@@ -151,6 +186,11 @@ class VUMeter(Widget):
         stroke_round_rect(hdc, app, x, y, w, h, radius, st['border'],
                           max(1, int(s)))
 
+        if (self.peak_hold and not self._timer
+                and hasattr(app, 'set_timer')):
+            self._timer = True
+            app.set_timer(50, self._on_peak_timer)
+
         arc_width = 6 * s
         self._arc(hdc, app, cx, cy, r, 0.0, SPLIT, cyan, arc_width, st)
         self._arc(hdc, app, cx, cy, r, SPLIT, 1.0, magenta, arc_width, st)
@@ -199,6 +239,25 @@ class VUMeter(Widget):
         gdi32.SelectObject(hdc, of)
 
         tip = self._point(cx, cy, r * 0.96, self.value)
+        if self.peak_hold and self.peak > self.value + 0.004:
+            p0 = self._point(cx, cy, r - 7 * s, self.peak)
+            p1 = self._point(cx, cy, r + 13 * s, self.peak)
+            marker = (226, 246, 255)
+            pen = app.get_pen(mix(st['window'], marker, 0.35),
+                              max(3, int(4 * s)))
+            old = gdi32.SelectObject(hdc, pen)
+            gdi32.MoveToEx(hdc, int(p0[0]), int(p0[1]), None)
+            gdi32.LineTo(hdc, int(p1[0]), int(p1[1]))
+            gdi32.SelectObject(hdc, old)
+            pen = app.get_pen(marker, max(1, int(2 * s)))
+            old = gdi32.SelectObject(hdc, pen)
+            gdi32.MoveToEx(hdc, int(p0[0]), int(p0[1]), None)
+            gdi32.LineTo(hdc, int(p1[0]), int(p1[1]))
+            gdi32.SelectObject(hdc, old)
+            dot = max(1, int(2 * s))
+            fill_round_rect(hdc, app, int(p1[0]) - dot, int(p1[1]) - dot,
+                            dot * 2, dot * 2, dot, marker)
+
         glow = mix((255, 255, 255), st['window'], 0.45)
         pen = app.get_pen(glow, max(3, int(5 * s)))
         old = gdi32.SelectObject(hdc, pen)

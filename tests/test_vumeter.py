@@ -88,3 +88,52 @@ class VUMeterTests(WidgetTestCase):
         self.assertEqual(meter.channel, 'R')
         self.assertEqual(len(meter.scale), 3)
         self.paint(meter)
+
+    def test_peak_tracks_the_highest_value(self):
+        meter = self.add(ui.VUMeter(0.2))
+        self.assertEqual(meter.peak, 0.2)
+        meter.set_value(0.8)
+        self.assertEqual(meter.peak, 0.8)
+        meter.set_value(0.3)
+        self.assertEqual(meter.value, 0.3)
+        self.assertEqual(meter.peak, 0.8)
+
+    def test_peak_holds_then_decays_to_the_value(self):
+        meter = self.add(ui.VUMeter(0.2, peak_hold_time=0.5,
+                                    peak_decay=0.4))
+        meter.set_value(1.0)
+        meter.set_value(0.1)
+        self.assertFalse(meter.tick(0.3))
+        self.assertEqual(meter.peak, 1.0)
+        self.assertTrue(meter.tick(0.4))
+        self.assertAlmostEqual(meter.peak, 0.84, delta=1e-6)
+        for _ in range(50):
+            meter.tick(0.05)
+        self.assertAlmostEqual(meter.peak, 0.1, delta=1e-6)
+        self.assertFalse(meter.tick(0.05))
+
+    def test_reset_peak(self):
+        meter = self.add(ui.VUMeter(0.2))
+        meter.set_value(0.9)
+        meter.set_value(0.2)
+        self.assertEqual(meter.peak, 0.9)
+        meter.reset_peak()
+        self.assertEqual(meter.peak, 0.2)
+        self.assertEqual(meter._peak_age, 0.0)
+
+    def test_peak_hold_disabled(self):
+        meter = self.add(ui.VUMeter(0.5, peak_hold=False))
+        meter.set_value(0.9)
+        self.assertEqual(meter.peak, 0.9)
+        meter.set_value(0.4)
+        self.assertEqual(meter.peak, 0.4)
+        self.assertFalse(meter.tick(1.0))
+
+    def test_paint_with_peak_marker(self):
+        meter = self.add(ui.VUMeter(0.2))
+        meter.set_value(0.9)
+        meter.set_value(0.35)
+        self.assertGreater(meter.peak, meter.value)
+        self.paint(meter)
+        meter.set_value(meter.peak, notify=False)
+        self.paint(meter)

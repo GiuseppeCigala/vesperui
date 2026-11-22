@@ -25,7 +25,7 @@ DEFAULT_ROWS = [
     ['ToggleSwitch', 'owner-drawn', 'animated knob'],
     ['Stepper', 'owner-drawn', 'increment and decrement'],
     ['ColorPicker', 'owner-drawn', 'hue, saturation, value'],
-    ['VUMeter', 'owner-drawn', 'analog needle and zones'],
+    ['VUMeter', 'owner-drawn', 'needle, zones, peak hold'],
     ['Slider', 'owner-drawn', 'horizontal and vertical'],
     ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
@@ -308,7 +308,7 @@ def build_app():
     vu_side.add(vu_slider)
     vu_side.add(vu_label)
     vu_row.add(vu_side)
-    vu_group.add(caption('ANALOG NEEDLE - DRAG IT OR USE THE SLIDER'))
+    vu_group.add(caption('NEEDLE + PEAK HOLD - DRAG OR USE THE SLIDER'))
     vu_group.add(vu_row)
 
     # -------------------------------------------------------------- dialogs
@@ -527,6 +527,7 @@ def build_app():
         vertical_progress.set_value(0.6)
         vertical_label.text = 'Vertical: 60%'
         vu_meter.set_value(0.35, notify=False)
+        vu_meter.reset_peak()
         vu_slider.set_value(0.35, notify=False)
         vu_label.text = 'Level: 35%'
         color_picker.set_color((0, 214, 255), notify=False)

@@ -31,7 +31,8 @@ app.run()
 
 Sliders and progress bars support `orientation="h"` and
 `orientation="v"`. The `VUMeter` is an analog needle meter that can be
-dragged with the mouse or adjusted with the arrow keys.
+dragged with the mouse or adjusted with the arrow keys; it also shows a
+peak-hold marker that falls back to the needle after a short hold.
 
 ## Showcase
 
