@@ -29,6 +29,9 @@ app.run()
 - Dialogs: `open_file`, `open_files`, `save_file`, `select_folder`, `info`,
   `warning`, `error`, `question`, `ok_cancel`
 
+Sliders and progress bars support `orientation="h"` and
+`orientation="v"`.
+
 ## Showcase
 
 ```bash

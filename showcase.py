@@ -25,7 +25,8 @@ DEFAULT_ROWS = [
     ['ToggleSwitch', 'owner-drawn', 'animated knob'],
     ['Stepper', 'owner-drawn', 'increment and decrement'],
     ['ColorPicker', 'owner-drawn', 'hue, saturation, value'],
-    ['Slider', 'owner-drawn', 'drag and arrow keys'],
+    ['Slider', 'owner-drawn', 'horizontal and vertical'],
+    ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
     ['ScrollView', 'owner-drawn', 'wheel, drag, clipping'],
 ]
@@ -261,6 +262,33 @@ def build_app():
     actions.add(caption('INDETERMINATE PROGRESS'))
     actions.add(marquee)
 
+    # ------------------------------------------------------ vertical controls
+    vertical_group = ui.GroupBox('Vertical orientation', bg=style['card'],
+                                 layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(vertical_group)
+    vertical_progress = ui.ProgressBar(0.6, show_text=True, orientation='v')
+    vertical_label = ui.Label('Vertical: 60%')
+
+    def on_vertical_slider(value):
+        vertical_progress.set_value(value)
+        vertical_label.text = 'Vertical: %d%%' % int(value * 100)
+        app.invalidate()
+        set_status('Vertical slider: %d%%.' % int(value * 100))
+
+    vertical_slider = ui.Slider(0.6, orientation='v',
+                                on_change=on_vertical_slider)
+    slider_column = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=6))
+    slider_column.add(ui.Label('Slider', 12, True, color=style['mid']))
+    slider_column.add(vertical_slider)
+    progress_column = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=6))
+    progress_column.add(ui.Label('Progress', 12, True, color=style['mid']))
+    progress_column.add(vertical_progress)
+    vertical_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=16))
+    vertical_row.add(slider_column)
+    vertical_row.add(progress_column)
+    vertical_group.add(vertical_row)
+    vertical_group.add(vertical_label)
+
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
@@ -473,6 +501,9 @@ def build_app():
         slider_label.text = 'Volume: 35%'
         stepper.set_value(3, notify=False)
         quantity_label.text = 'Quantity: 3'
+        vertical_slider.set_value(0.6, notify=False)
+        vertical_progress.set_value(0.6)
+        vertical_label.text = 'Vertical: 60%'
         color_picker.set_color((0, 214, 255), notify=False)
         color_label.text = 'Color: #00D6FF'
         combo.select(0)

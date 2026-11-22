@@ -1,4 +1,4 @@
-"""Owner-drawn horizontal slider."""
+"""Owner-drawn horizontal or vertical slider."""
 from .common import *  # noqa: F401,F403
 from .style import style_of
 
@@ -6,15 +6,19 @@ from .style import style_of
 class Slider(Widget):
     TRACK = (220, 225, 232)
 
-    def __init__(self, value=0.0, on_change=None, accent=None):
+    def __init__(self, value=0.0, on_change=None, accent=None,
+                 orientation='h'):
         super().__init__()
         self.value = max(0.0, min(1.0, float(value)))
         self.on_change = on_change
         self.accent = accent
+        self.orientation = 'v' if orientation in ('v', 'vertical') else 'h'
         self.focusable = True
         self._dragging = False
 
     def measure(self, app):
+        if self.orientation == 'v':
+            return (int(28 * app.scale), int(220 * app.scale))
         return (int(220 * app.scale), int(28 * app.scale))
 
     def set_value(self, value, notify=True):
@@ -25,20 +29,26 @@ class Slider(Widget):
             self.on_change(value)
 
     def _pad(self):
+        if self.orientation == 'v':
+            return max(6, self.w // 2)
         return max(6, self.h // 2)
 
-    def _set_from_x(self, x):
+    def _set_from_pos(self, x, y):
         pad = self._pad()
-        span = max(1, self.w - 2 * pad)
-        self.set_value((x - self.x - pad) / span)
+        if self.orientation == 'v':
+            span = max(1, self.h - 2 * pad)
+            self.set_value((self.h - pad - (y - self.y)) / span)
+        else:
+            span = max(1, self.w - 2 * pad)
+            self.set_value((x - self.x - pad) / span)
 
     def on_mouse_down(self, x, y):
         self._dragging = True
-        self._set_from_x(x)
+        self._set_from_pos(x, y)
 
     def on_mouse_move(self, x, y):
         if self._dragging:
-            self._set_from_x(x)
+            self._set_from_pos(x, y)
 
     def on_mouse_up(self, x, y):
         self._dragging = False
@@ -56,6 +66,36 @@ class Slider(Widget):
         accent2 = st['highlight2']
         x, y, w, h = self.x, self.y, self.w, self.h
         pad = self._pad()
+        knob_r = max(5, int(8 * s))
+
+        if self.orientation == 'v':
+            cx = x + w // 2
+            track_w = max(4, int(6 * s))
+            top = y + pad
+            span = max(1, h - 2 * pad)
+            bottom = top + span
+            fill_round_rect(hdc, app, cx - track_w // 2, top, track_w, span,
+                            track_w // 2, st['button'])
+            filled = int(span * self.value)
+            if filled > 0:
+                fill_round_gradient_v(hdc, app, cx - track_w // 2,
+                                      bottom - filled, track_w, filled,
+                                      track_w // 2, accent2, accent)
+            ky = bottom - filled
+            if self.hovered or self._dragging or self.focused:
+                stroke_round_rect(hdc, app, cx - knob_r - 1, ky - knob_r - 1,
+                                  knob_r * 2 + 2, knob_r * 2 + 2,
+                                  knob_r + 1, st['glow'], max(2, int(2 * s)))
+            fill_round_rect(hdc, app, cx - knob_r, ky - knob_r,
+                            knob_r * 2, knob_r * 2, knob_r, st['base'])
+            stroke_round_rect(hdc, app, cx - knob_r, ky - knob_r,
+                              knob_r * 2, knob_r * 2, knob_r, accent,
+                              max(1, int(s)))
+            dot = max(2, int(3 * s))
+            fill_round_rect(hdc, app, cx - dot, ky - dot, dot * 2, dot * 2,
+                            dot, accent)
+            return
+
         cy = y + h // 2
         track_h = max(4, int(6 * s))
         left, span = x + pad, max(1, w - 2 * pad)
@@ -67,7 +107,6 @@ class Slider(Widget):
             fill_round_gradient_h(hdc, app, left, cy - track_h // 2, filled,
                                   track_h, track_h // 2, accent, accent2)
 
-        knob_r = max(5, int(8 * s))
         kx = left + filled
         if self.hovered or self._dragging or self.focused:
             stroke_round_rect(hdc, app, kx - knob_r - 1, cy - knob_r - 1,
