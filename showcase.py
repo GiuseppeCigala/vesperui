@@ -25,6 +25,7 @@ DEFAULT_ROWS = [
     ['ToggleSwitch', 'owner-drawn', 'animated knob'],
     ['Stepper', 'owner-drawn', 'increment and decrement'],
     ['ColorPicker', 'owner-drawn', 'hue, saturation, value'],
+    ['VUMeter', 'owner-drawn', 'analog needle and zones'],
     ['Slider', 'owner-drawn', 'horizontal and vertical'],
     ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
@@ -284,6 +285,32 @@ def build_app():
     vertical_group.add(vertical_row)
     vertical_group.add(vertical_label)
 
+    # ---------------------------------------------------------------- vu meter
+    vu_group = ui.GroupBox('VU meter', bg=style['card'],
+                           layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(vu_group)
+    vu_label = ui.Label('Level: 35%')
+
+    def on_vu(value):
+        percent = int(round(value * 100))
+        vu_slider.set_value(value, notify=False)
+        vu_label.text = 'Level: %d%%' % percent
+        app.invalidate()
+        set_status('VU level: %d%%.' % percent)
+
+    vu_meter = ui.VUMeter(0.35, on_change=on_vu)
+    vu_slider = ui.Slider(0.35, on_change=lambda v: vu_meter.set_value(v))
+    vu_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=12))
+    vu_row.add(vu_meter)
+    vu_side = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=8))
+    vu_side.stretch = 1
+    vu_side.add(caption('LEVEL'))
+    vu_side.add(vu_slider)
+    vu_side.add(vu_label)
+    vu_row.add(vu_side)
+    vu_group.add(caption('ANALOG NEEDLE - DRAG IT OR USE THE SLIDER'))
+    vu_group.add(vu_row)
+
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
@@ -499,6 +526,9 @@ def build_app():
         vertical_slider.set_value(0.6, notify=False)
         vertical_progress.set_value(0.6)
         vertical_label.text = 'Vertical: 60%'
+        vu_meter.set_value(0.35, notify=False)
+        vu_slider.set_value(0.35, notify=False)
+        vu_label.text = 'Level: 35%'
         color_picker.set_color((0, 214, 255), notify=False)
         color_label.text = 'Color: #00D6FF'
         combo.select(0)
