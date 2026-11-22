@@ -48,7 +48,9 @@ smoothed levels, transients and peak caps.
 ## Showcase
 
 ```bash
-python showcase_audio.py        # interactive audio controls demo
+python showcase_common.py       # classic controls
+python showcase_audio.py        # audio controls
+python showcase_common.py --check
 python showcase_audio.py --check
 ```
 
