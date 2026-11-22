@@ -564,6 +564,9 @@ gdi32.DeleteObject.restype = wintypes.BOOL
 gdi32.RoundRect.argtypes = [wintypes.HDC] + [ctypes.c_int] * 6
 gdi32.Rectangle.argtypes = [wintypes.HDC] + [ctypes.c_int] * 4
 gdi32.Ellipse.argtypes = [wintypes.HDC] + [ctypes.c_int] * 4
+gdi32.Polygon.argtypes = [wintypes.HDC, ctypes.POINTER(wintypes.POINT),
+                          ctypes.c_int]
+gdi32.Polygon.restype = wintypes.BOOL
 gdi32.MoveToEx.argtypes = [wintypes.HDC, ctypes.c_int, ctypes.c_int, ctypes.POINTER(wintypes.POINT)]
 gdi32.LineTo.argtypes = [wintypes.HDC, ctypes.c_int, ctypes.c_int]
 gdi32.SetBkMode.argtypes = [wintypes.HDC, ctypes.c_int]

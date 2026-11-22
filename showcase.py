@@ -29,6 +29,7 @@ DEFAULT_ROWS = [
     ['LevelMeter', 'owner-drawn', 'stereo bars, dB scale'],
     ['MixerSlider', 'owner-drawn', 'dB fader with a large cap'],
     ['Knob', 'owner-drawn', 'ring, pointer and value plate'],
+    ['TransportBar', 'owner-drawn', 'play, pause, stop, ff, rew'],
     ['Slider', 'owner-drawn', 'horizontal and vertical'],
     ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
@@ -38,6 +39,11 @@ DEFAULT_ROWS = [
 FILE_FILTERS = [
     ('Python files', '*.py'),
     ('Text files', '*.txt;*.md'),
+    ('All files', '*.*'),
+]
+
+AUDIO_FILTERS = [
+    ('Audio files', '*.wav;*.mp3;*.flac;*.ogg;*.m4a'),
     ('All files', '*.*'),
 ]
 
@@ -391,6 +397,40 @@ def build_app():
     knob_group.add(caption('ROTARY KNOB'))
     knob_group.add(knob_row)
 
+    # -------------------------------------------------------------- transport
+    transport_group = ui.GroupBox('Audio transport', bg=style['card'],
+                                  layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(transport_group)
+    transport_info = ui.Label('No track loaded.')
+
+    def on_transport(command):
+        transport.set_active(command if command in ('play', 'pause') else None)
+        transport_info.text = 'Transport: %s' % command.upper()
+        app.invalidate()
+        set_status('Transport command: %s.' % command)
+
+    def on_load_audio():
+        path = app.open_file('Open audio file', AUDIO_FILTERS)
+        if path:
+            name = os.path.basename(path)
+            transport_info.text = 'Track: %s' % name
+            set_status('Loaded audio file: %s.' % name)
+            app.invalidate()
+        else:
+            set_status('Audio open cancelled.')
+
+    transport = ui.TransportBar(on_command=on_transport)
+    transport_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=16))
+    transport_row.add(transport)
+    transport_side = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=8))
+    transport_side.stretch = 1
+    transport_side.add(transport_info)
+    transport_side.add(ui.Hyperlink('Load audio file...',
+                                    on_click=on_load_audio))
+    transport_row.add(transport_side)
+    transport_group.add(caption('REW / PLAY / PAUSE / STOP / FF'))
+    transport_group.add(transport_row)
+
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
@@ -620,6 +660,8 @@ def build_app():
         mixer_label.text = 'Fader: 0.0 dB'
         knob.set_value(0.5, notify=False)
         knob_label.text = 'Knob: 50.0 %'
+        transport.set_active(None)
+        transport_info.text = 'No track loaded.'
         color_picker.set_color((0, 214, 255), notify=False)
         color_label.text = 'Color: #00D6FF'
         combo.select(0)

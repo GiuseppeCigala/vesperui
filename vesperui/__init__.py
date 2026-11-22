@@ -32,6 +32,7 @@ from .levelmeter import (LevelMeter, BarVUMeter, db_to_fraction,  # noqa: F401
                          fraction_to_db)
 from .mixerslider import MixerSlider  # noqa: F401
 from .knob import Knob  # noqa: F401
+from .media import MediaButton, TransportBar  # noqa: F401
 from .groupbox import GroupBox  # noqa: F401
 from .separator import Separator  # noqa: F401
 from .hyperlink import Hyperlink  # noqa: F401
