@@ -277,15 +277,10 @@ def build_app():
 
     vertical_slider = ui.Slider(0.6, orientation='v',
                                 on_change=on_vertical_slider)
-    slider_column = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=6))
-    slider_column.add(ui.Label('Slider', 12, True, color=style['mid']))
-    slider_column.add(vertical_slider)
-    progress_column = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=6))
-    progress_column.add(ui.Label('Progress', 12, True, color=style['mid']))
-    progress_column.add(vertical_progress)
     vertical_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=16))
-    vertical_row.add(slider_column)
-    vertical_row.add(progress_column)
+    vertical_row.add(vertical_slider)
+    vertical_row.add(vertical_progress)
+    vertical_group.add(caption('VERTICAL SLIDER / PROGRESS'))
     vertical_group.add(vertical_row)
     vertical_group.add(vertical_label)
 

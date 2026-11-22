@@ -71,13 +71,15 @@ class App:
 
     def add(self, w): return self.root.add(w)
 
-    def get_font(self, size=14, bold=False, underline=False):
-        key = (size, bold, underline)
+    def get_font(self, size=14, bold=False, underline=False, angle=0):
+        key = (size, bold, underline, int(angle))
         if key not in self._font_cache:
             px = max(6, int(size * self.scale))
+            escapement = int(angle * 10)
             # ClearType quality (5) for crisp, modern text rendering
             self._font_cache[key] = gdi32.CreateFontW(
-                -px, 0, 0, 0, FW_BOLD if bold else FW_NORMAL, 0,
+                -px, 0, escapement, escapement,
+                FW_BOLD if bold else FW_NORMAL, 0,
                 1 if underline else 0, 0,
                 DEFAULT_CHARSET, 0, 0, CLEARTYPE_QUALITY, 0, 'Segoe UI')
         return self._font_cache[key]

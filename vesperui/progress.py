@@ -18,7 +18,7 @@ class ProgressBar(Widget):
 
     def measure(self, app):
         if self.orientation == 'v':
-            return (int(36 * app.scale), int(220 * app.scale))
+            return (int(18 * app.scale), int(220 * app.scale))
         return (int(220 * app.scale), int(18 * app.scale))
 
     def set_value(self, value):
@@ -71,7 +71,8 @@ class ProgressBar(Widget):
             rc = wintypes.RECT(x, y, x + w, y + h)
             gdi32.SetBkMode(hdc, TRANSPARENT)
             gdi32.SetTextColor(hdc, COLORREF(*st['windowText']))
-            of = gdi32.SelectObject(hdc, app.get_font(10, True))
+            angle = 90 if self.orientation == 'v' else 0
+            of = gdi32.SelectObject(hdc, app.get_font(10, True, angle=angle))
             user32.DrawTextW(hdc, f'{int(self.value * 100)}%', -1,
                              ctypes.byref(rc),
                              DT_CENTER | DT_VCENTER | DT_SINGLELINE)

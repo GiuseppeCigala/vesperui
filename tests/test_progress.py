@@ -21,7 +21,7 @@ class ProgressBarTests(WidgetTestCase):
 
     def test_vertical_measure(self):
         progress = ui.ProgressBar(0.5, orientation='v', show_text=True)
-        self.assertEqual(progress.measure(self.app), (36, 220))
+        self.assertEqual(progress.measure(self.app), (18, 220))
 
     def test_vertical_value_and_draw(self):
         progress = self.add(ui.ProgressBar(0.6, orientation='v',
