@@ -7,6 +7,16 @@ Public API. Import this package directly::
 The implementation is split across one module per graphical element, with
 shared Win32 bindings and helpers in ``vesperui.common``.
 """
+import sys as _sys
+
+__version__ = "0.1.0"
+
+if _sys.platform != "win32":
+    raise ImportError(
+        "VesperUI requires Microsoft Windows: it binds user32, gdi32 and "
+        "comctl32 directly through ctypes."
+    )
+
 from .common import *  # noqa: F401,F403
 from .common import _clamp, _tri, _SetWndPtr  # noqa: F401
 from .layouts import VBoxLayout, HBoxLayout  # noqa: F401

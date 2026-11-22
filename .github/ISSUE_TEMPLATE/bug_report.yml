@@ -1,0 +1,86 @@
+name: Bug report
+description: Report a crash, a rendering problem or an unexpected behavior.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please search existing
+        issues first. For security problems, use the private advisory link in
+        SECURITY.md instead of this form.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: A minimal script or a sequence of steps is ideal.
+      placeholder: |
+        1. Run `python showcase_common.py`
+        2. Click ...
+        3. See ...
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Traceback or error output
+      description: Paste the full traceback, or the Win32 error code if one is reported.
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: vesperui-version
+    attributes:
+      label: VesperUI version
+      description: Run `python -c "import vesperui; print(vesperui.__version__)"`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12.7"
+    validations:
+      required: true
+
+  - type: input
+    id: windows-version
+    attributes:
+      label: Windows version
+      description: Include the build number if possible.
+      placeholder: "Windows 11 23H2 (22631)"
+    validations:
+      required: true
+
+  - type: input
+    id: display
+    attributes:
+      label: Display scaling and DPI
+      description: Optional, but useful for layout and rendering bugs.
+      placeholder: "150%, 2560x1440"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I can reproduce this on the latest release or on `main`.
+          required: true

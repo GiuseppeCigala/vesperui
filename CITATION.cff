@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use VesperUI in academic work, please cite it as below."
+title: VesperUI
+abstract: >-
+  Pure-Python Windows GUI toolkit built on the Win32 API through ctypes,
+  combining native controls with owner-drawn Aurora widgets under a single
+  dark visual style.
+authors:
+  - family-names: Cigala
+    given-names: Giuseppe
+version: 0.1.0
+date-released: 2026-11-22
+url: https://github.com/GiuseppeCigala/vesperui
+repository-code: https://github.com/GiuseppeCigala/vesperui
+license: MIT
+keywords:
+  - python
+  - windows
+  - gui
+  - win32
+  - ctypes
+  - widgets
+type: software

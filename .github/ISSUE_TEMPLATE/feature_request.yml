@@ -1,0 +1,61 @@
+name: Feature request
+description: Suggest a new widget, an API improvement or a documentation change.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Please describe the use case before the
+        proposed API, and check whether an existing widget or composition
+        already solves the problem.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the use case and why the current widgets are not enough.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: An API sketch, a mockup or a description of the behavior.
+      render: python
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing widgets, workarounds or external libraries you tried.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - New widget
+        - Existing widget behavior
+        - App / window / layout
+        - Styling and theming
+        - Documentation
+        - Packaging and tooling
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This request fits a Windows-only, dependency-free toolkit.
+          required: true
