@@ -23,7 +23,7 @@ app.run()
 - Controls: `Button`, `Label`, `TextBox`, `CheckBox`, `RadioButton`,
   `ComboBox`, `ListView`, `Slider`, `ToggleSwitch`, `ProgressBar`, `TabBar`,
   `Hyperlink`, `Separator`, `Stepper`, `ColorPicker`, `VUMeter`,
-  `LevelMeter`
+  `LevelMeter`, `MixerSlider`
 - Graphics: `Canvas`
 - Menus: `MenuBar`, `Menu`
 - `ListView` cells can be edited in place by double-clicking them.
@@ -35,7 +35,9 @@ Sliders and progress bars support `orientation="h"` and
 dragged with the mouse or adjusted with the arrow keys; it also shows a
 peak-hold marker that falls back to the needle after a short hold. The
 `LevelMeter` (alias `BarVUMeter`) draws one or two segmented bars with a
-dB scale in either orientation, with the same peak-hold behaviour.
+dB scale in either orientation, with the same peak-hold behaviour. The
+`MixerSlider` is a mixer-style fader with a large cap and a non-linear dB
+scale (6, 0, 5, 10, 15, 20, 30, 40, ∞).
 
 ## Showcase
 

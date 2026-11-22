@@ -27,6 +27,7 @@ DEFAULT_ROWS = [
     ['ColorPicker', 'owner-drawn', 'hue, saturation, value'],
     ['VUMeter', 'owner-drawn', 'needle, zones, peak hold'],
     ['LevelMeter', 'owner-drawn', 'stereo bars, dB scale'],
+    ['MixerSlider', 'owner-drawn', 'dB fader with a large cap'],
     ['Slider', 'owner-drawn', 'horizontal and vertical'],
     ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
@@ -341,6 +342,31 @@ def build_app():
     bar_group.add(caption('VERTICAL / HORIZONTAL + PEAK HOLD'))
     bar_group.add(bar_row)
 
+    # ----------------------------------------------------------- mixer fader
+    mixer_group = ui.GroupBox('Mixer fader', bg=style['card'],
+                              layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(mixer_group)
+    mixer_label = ui.Label('Fader: 0.0 dB')
+
+    def on_mixer(db):
+        mixer_label.text = 'Fader: %s' % mixer.value_text()
+        app.invalidate()
+        set_status('Mixer fader: %s.' % mixer.value_text())
+
+    mixer = ui.MixerSlider(0.0, on_change=on_mixer)
+    mixer_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=16))
+    mixer_row.add(mixer)
+    mixer_side = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=8))
+    mixer_side.stretch = 1
+    mixer_side.add(mixer_label)
+    mixer_side.add(ui.Label('Drag the cap or click on the rail.', 12,
+                            color=style['mid']))
+    mixer_side.add(ui.Label('Scale: +6 dB down to -∞ dB.', 12,
+                            color=style['mid']))
+    mixer_row.add(mixer_side)
+    mixer_group.add(caption('MIXER FADER - DB TAPER'))
+    mixer_group.add(mixer_row)
+
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
@@ -566,6 +592,8 @@ def build_app():
         bar_h.reset_peaks()
         bar_both_slider.set_value(0.55, notify=False)
         bar_both_label.text = 'Channels: 55% / 72%'
+        mixer.set_value(0.0, notify=False)
+        mixer_label.text = 'Fader: 0.0 dB'
         color_picker.set_color((0, 214, 255), notify=False)
         color_label.text = 'Color: #00D6FF'
         combo.select(0)
