@@ -8,7 +8,7 @@ abstract: >-
 authors:
   - family-names: Cigala
     given-names: Giuseppe
-version: 0.1.0
+version: 0.1.1
 date-released: 2026-11-22
 url: https://github.com/GiuseppeCigala/vesperui
 repository-code: https://github.com/GiuseppeCigala/vesperui

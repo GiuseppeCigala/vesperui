@@ -8,7 +8,7 @@ and PyPI.
 The version lives in one place, `vesperui/__init__.py`:
 
 ```python
-__version__ = "0.1.0"
+__version__ = "<version>"
 ```
 
 `pyproject.toml` reads it dynamically, so there is nothing else to bump.
@@ -55,10 +55,10 @@ python -m zipfile -l dist/vesperui-<version>-py3-none-any.whl
 
 ```bash
 git add .
-git commit -m "Release 0.1.0"
-git tag v0.1.0
+git commit -m "Release <version>"
+git tag v<version>
 git push origin main
-git push origin v0.1.0
+git push origin v<version>
 ```
 
 ## 6. Publish to PyPI

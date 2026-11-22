@@ -45,7 +45,7 @@ body:
     attributes:
       label: VesperUI version
       description: Run `python -c "import vesperui; print(vesperui.__version__)"`.
-      placeholder: "0.1.0"
+      placeholder: "0.1.1"
     validations:
       required: true
 

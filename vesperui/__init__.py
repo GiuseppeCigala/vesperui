@@ -9,7 +9,7 @@ shared Win32 bindings and helpers in ``vesperui.common``.
 """
 import sys as _sys
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 if _sys.platform != "win32":
     raise ImportError(

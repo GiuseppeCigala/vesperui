@@ -8,11 +8,20 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-22
+
 ### Added
 
 - Individual screenshots for every widget class, a widget gallery page and
   image links from the widget reference.
 - `tools/capture_widgets.py` to regenerate the gallery.
+
+### Changed
+
+- Regenerated the showcase screenshots with the correct window background and
+  tighter framing.
+- The off-screen capture tooling now composite the selected `ComboBox` label,
+  which is owner-drawn and not covered by `WM_PRINT`.
 
 ## [0.1.0] - 2026-11-22
 
@@ -47,5 +56,6 @@ and this project adheres to
 - Fixed scroll repaint seams and hid native controls while dragging
   scrollbars.
 
-[Unreleased]: https://github.com/GiuseppeCigala/vesperui/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/GiuseppeCigala/vesperui/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/GiuseppeCigala/vesperui/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/GiuseppeCigala/vesperui/releases/tag/v0.1.0
