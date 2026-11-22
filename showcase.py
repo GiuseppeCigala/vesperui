@@ -12,8 +12,10 @@ The window is organised in two columns:
 Every callback writes a message to the status bar, so interacting with a
 control makes its behaviour immediately visible.
 """
+import math
 import os
 import sys
+import time
 
 import vesperui as ui
 
@@ -30,6 +32,7 @@ DEFAULT_ROWS = [
     ['MixerSlider', 'owner-drawn', 'dB fader with a large cap'],
     ['Knob', 'owner-drawn', 'ring, pointer and value plate'],
     ['TransportBar', 'owner-drawn', 'play, pause, stop, ff, rew'],
+    ['SpectrumAnalyzer', 'owner-drawn', 'log frequency, dB bars'],
     ['Slider', 'owner-drawn', 'horizontal and vertical'],
     ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
@@ -46,6 +49,21 @@ AUDIO_FILTERS = [
     ('Audio files', '*.wav;*.mp3;*.flac;*.ogg;*.m4a'),
     ('All files', '*.*'),
 ]
+
+
+def synthetic_spectrum(bins, t):
+    """Build a plausible log-spaced spectrum for the showcase animation."""
+    values = []
+    for i in range(bins):
+        f = i / max(1, bins - 1)
+        slope = 0.72 - 0.40 * f
+        waves = (0.16 * math.sin(t * 1.7 + f * 9.0)
+                 + 0.11 * math.sin(t * 0.9 + f * 23.0)
+                 + 0.06 * math.sin(t * 2.3 + f * 41.0))
+        ripple = 0.025 * math.sin(t * 6.0 + i * 1.7)
+        spike = 0.24 * max(0.0, math.sin(t * 0.55 + f * 5.0)) ** 12
+        values.append(max(0.0, min(1.0, slope + waves + ripple + spike)))
+    return values
 
 
 class ShowcaseCanvas(ui.Canvas):
@@ -431,6 +449,14 @@ def build_app():
     transport_group.add(caption('REW / PLAY / PAUSE / STOP / FF'))
     transport_group.add(transport_row)
 
+    # --------------------------------------------------------------- spectrum
+    spectrum_group = ui.GroupBox('Spectrum analyzer', bg=style['card'],
+                                 layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(spectrum_group)
+    spectrum = ui.SpectrumAnalyzer(bins=96)
+    spectrum_group.add(caption('LOG FREQUENCY - AVERAGE / TRANSIENT / PEAK'))
+    spectrum_group.add(spectrum)
+
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
@@ -662,6 +688,7 @@ def build_app():
         knob_label.text = 'Knob: 50.0 %'
         transport.set_active(None)
         transport_info.text = 'No track loaded.'
+        spectrum.reset()
         color_picker.set_color((0, 214, 255), notify=False)
         color_label.text = 'Color: #00D6FF'
         combo.select(0)
@@ -715,6 +742,8 @@ def build_app():
             marquee.tick(0.06)
             app.invalidate_rect(marquee.x, marquee.y,
                                 marquee.w, marquee.h)
+        spectrum.set_spectrum(synthetic_spectrum(spectrum.bins,
+                                                 time.monotonic()))
 
     app.set_timer(60, tick)
     return app

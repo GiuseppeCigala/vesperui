@@ -23,7 +23,8 @@ app.run()
 - Controls: `Button`, `Label`, `TextBox`, `CheckBox`, `RadioButton`,
   `ComboBox`, `ListView`, `Slider`, `ToggleSwitch`, `ProgressBar`, `TabBar`,
   `Hyperlink`, `Separator`, `Stepper`, `ColorPicker`, `VUMeter`,
-  `LevelMeter`, `MixerSlider`, `Knob`, `MediaButton`, `TransportBar`
+  `LevelMeter`, `MixerSlider`, `Knob`, `MediaButton`, `TransportBar`,
+  `SpectrumAnalyzer`
 - Graphics: `Canvas`
 - Menus: `MenuBar`, `Menu`
 - `ListView` cells can be edited in place by double-clicking them.
@@ -40,7 +41,9 @@ dB scale in either orientation, with the same peak-hold behaviour. The
 scale (6, 0, 5, 10, 15, 20, 30, 40, ∞). The `Knob` is a rotary control with
 a dark bezel, an accent ring, a white pointer and a value plate below.
 `MediaButton` draws play, pause, stop, rewind and fast-forward icons, and
-`TransportBar` groups the five buttons with per-command callbacks.
+`TransportBar` groups the five buttons with per-command callbacks. The
+`SpectrumAnalyzer` renders animated log-frequency bars with a dB grid,
+smoothed levels, transients and peak caps.
 
 ## Showcase
 
