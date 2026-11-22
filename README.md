@@ -22,7 +22,8 @@ app.run()
 - Containers: `Panel`, `GroupBox`, `ScrollView`, `VBoxLayout`, `HBoxLayout`
 - Controls: `Button`, `Label`, `TextBox`, `CheckBox`, `RadioButton`,
   `ComboBox`, `ListView`, `Slider`, `ToggleSwitch`, `ProgressBar`, `TabBar`,
-  `Hyperlink`, `Separator`, `Stepper`, `ColorPicker`, `VUMeter`
+  `Hyperlink`, `Separator`, `Stepper`, `ColorPicker`, `VUMeter`,
+  `LevelMeter`
 - Graphics: `Canvas`
 - Menus: `MenuBar`, `Menu`
 - `ListView` cells can be edited in place by double-clicking them.
@@ -32,7 +33,9 @@ app.run()
 Sliders and progress bars support `orientation="h"` and
 `orientation="v"`. The `VUMeter` is an analog needle meter that can be
 dragged with the mouse or adjusted with the arrow keys; it also shows a
-peak-hold marker that falls back to the needle after a short hold.
+peak-hold marker that falls back to the needle after a short hold. The
+`LevelMeter` (alias `BarVUMeter`) draws one or two segmented bars with a
+dB scale in either orientation, with the same peak-hold behaviour.
 
 ## Showcase
 

@@ -26,6 +26,7 @@ DEFAULT_ROWS = [
     ['Stepper', 'owner-drawn', 'increment and decrement'],
     ['ColorPicker', 'owner-drawn', 'hue, saturation, value'],
     ['VUMeter', 'owner-drawn', 'needle, zones, peak hold'],
+    ['LevelMeter', 'owner-drawn', 'stereo bars, dB scale'],
     ['Slider', 'owner-drawn', 'horizontal and vertical'],
     ['ProgressBar', 'owner-drawn', 'horizontal and vertical'],
     ['Canvas', 'owner-drawn', 'line, rect, ellipse, text'],
@@ -311,6 +312,35 @@ def build_app():
     vu_group.add(caption('NEEDLE + PEAK HOLD - DRAG OR USE THE SLIDER'))
     vu_group.add(vu_row)
 
+    # ---------------------------------------------------------- bar vu meters
+    bar_group = ui.GroupBox('Bar VU meters', bg=style['card'],
+                            layout=ui.VBoxLayout(padding=10, spacing=8))
+    left.add(bar_group)
+    bar_v = ui.LevelMeter((0.55, 0.72), orientation='v')
+    bar_h = ui.LevelMeter((0.55, 0.72), orientation='h')
+    bar_both_label = ui.Label('Channels: 55% / 72%')
+
+    def on_bar_both(value):
+        percent = int(round(value * 100))
+        bar_v.set_levels((value, value))
+        bar_h.set_levels((value, value))
+        bar_both_label.text = 'Channels: %d%% / %d%%' % (percent, percent)
+        set_status('Bar meters: %d%%.' % percent)
+
+    bar_both_slider = ui.Slider(0.55, on_change=on_bar_both)
+    bar_row = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=16))
+    bar_row.add(bar_v)
+    bar_side = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=8))
+    bar_side.stretch = 1
+    bar_side.add(bar_h)
+    bar_side.add(bar_both_slider)
+    bar_side.add(bar_both_label)
+    bar_side.add(ui.Label('Drag a single bar to set that channel.', 12,
+                          color=style['mid']))
+    bar_row.add(bar_side)
+    bar_group.add(caption('VERTICAL / HORIZONTAL + PEAK HOLD'))
+    bar_group.add(bar_row)
+
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
@@ -530,6 +560,12 @@ def build_app():
         vu_meter.reset_peak()
         vu_slider.set_value(0.35, notify=False)
         vu_label.text = 'Level: 35%'
+        bar_v.set_levels((0.55, 0.72), notify=False)
+        bar_h.set_levels((0.55, 0.72), notify=False)
+        bar_v.reset_peaks()
+        bar_h.reset_peaks()
+        bar_both_slider.set_value(0.55, notify=False)
+        bar_both_label.text = 'Channels: 55% / 72%'
         color_picker.set_color((0, 214, 255), notify=False)
         color_label.text = 'Color: #00D6FF'
         combo.select(0)

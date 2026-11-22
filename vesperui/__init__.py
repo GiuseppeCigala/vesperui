@@ -28,6 +28,8 @@ from .stepper import Stepper, StepperButton  # noqa: F401
 from .colorpicker import (ColorPicker, hsv_to_rgb, rgb_to_hsv,  # noqa: F401
                           rgb_to_hex)
 from .vumeter import VUMeter  # noqa: F401
+from .levelmeter import (LevelMeter, BarVUMeter, db_to_fraction,  # noqa: F401
+                         fraction_to_db)
 from .groupbox import GroupBox  # noqa: F401
 from .separator import Separator  # noqa: F401
 from .hyperlink import Hyperlink  # noqa: F401
