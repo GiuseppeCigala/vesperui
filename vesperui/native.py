@@ -3,6 +3,20 @@ from .common import *  # noqa: F401,F403
 from .style import style_of
 
 
+SUBCLASSPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT,
+                                  wintypes.WPARAM, wintypes.LPARAM,
+                                  ctypes.c_size_t, ctypes.c_size_t)
+comctl32.SetWindowSubclass.argtypes = [wintypes.HWND, SUBCLASSPROC,
+                                       ctypes.c_size_t, ctypes.c_size_t]
+comctl32.SetWindowSubclass.restype = wintypes.BOOL
+comctl32.RemoveWindowSubclass.argtypes = [wintypes.HWND, SUBCLASSPROC,
+                                          ctypes.c_size_t]
+comctl32.RemoveWindowSubclass.restype = wintypes.BOOL
+comctl32.DefSubclassProc.argtypes = [wintypes.HWND, wintypes.UINT,
+                                     wintypes.WPARAM, wintypes.LPARAM]
+comctl32.DefSubclassProc.restype = LRESULT
+
+
 class _NativeWidget(Widget):
     _win_class = ''
     inset = 0
@@ -14,6 +28,7 @@ class _NativeWidget(Widget):
         self.font_size = 14
         self.focusable = True
         self._app = None
+        self._subclass_ref = None
 
     def _inset_px(self):
         scale = self._app.scale if self._app else 1.0
@@ -24,6 +39,13 @@ class _NativeWidget(Widget):
 
     def _create_title(self):
         return ''
+
+    def _install_subclass(self, callback):
+        """Install a comctl32 subclass so a widget can paint over native chrome."""
+        if not self.hwnd or self._subclass_ref is not None:
+            return
+        self._subclass_ref = SUBCLASSPROC(callback)
+        comctl32.SetWindowSubclass(self.hwnd, self._subclass_ref, 1, 0)
 
     def realize(self, parent_hwnd, hinstance, app):
         if self.hwnd:

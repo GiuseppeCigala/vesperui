@@ -94,3 +94,8 @@ def draw(self, hdc, app):
 
 `is_dark(color)` returns whether a color is perceptually dark; it is used to
 pick shadows, contrast and dark-mode behavior.
+
+`scale_color(style, fraction)` returns the soft teal-to-violet color used by
+the audio meters, sliders, progress bars, toggles, tabs and selected states
+for a `0.0`–`1.0` position. Use it in custom widgets so they match the built-in
+controls.

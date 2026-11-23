@@ -2,7 +2,7 @@
 import math
 
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 START_ANGLE = 135.0   # bottom-left end of the ring, in screen degrees
 SWEEP = 270.0         # gap left at the bottom
@@ -147,8 +147,9 @@ class Knob(Widget):
         px = cx - width // 2
         py = cy + outer_r + int(8 * s)
         radius = max(3, int(4 * s))
-        fill_round_rect(hdc, app, px, py, width, height, radius,
-                        mix(st['window'], st['base'], 0.5))
+        fill_round_gradient_v(hdc, app, px, py, width, height, radius,
+                              lighten(st['base'], 0.04),
+                              mix(st['window'], st['base'], 0.55))
         stroke_round_rect(hdc, app, px, py, width, height, radius,
                           st['border'], max(1, int(s)))
         rc = wintypes.RECT(px, py, px + width, py + height)
@@ -163,7 +164,8 @@ class Knob(Widget):
         self._app = app
         s = app.scale
         st = style_of(app)
-        accent = self.accent if self.accent is not None else st['highlight']
+        accent = self.accent if self.accent is not None \
+            else scale_color(st, 0.65)
         cx, cy, outer_r = self._geometry()
 
         bezel_w = max(4, int(7 * s))
@@ -174,7 +176,7 @@ class Knob(Widget):
 
         if self.focused or self.hovered or self._dragging:
             self._ring(hdc, app, cx, cy, outer_r + int(2 * s),
-                       mix(st['window'], accent, 0.55), max(2, int(2 * s)))
+                       mix(st['window'], accent, 0.45), max(2, int(2 * s)))
 
         bezel = mix(st['window'], st['border'], 0.60)
         self._ring(hdc, app, cx, cy, bezel_r, bezel, bezel_w)
@@ -190,7 +192,8 @@ class Knob(Widget):
 
         p0 = self._point(cx, cy, inner_r * 0.45, self.value)
         p1 = self._point(cx, cy, inner_r * 0.92, self.value)
-        self._polyline(hdc, app, [p0, p1], (240, 244, 244),
+        self._polyline(hdc, app, [p0, p1],
+                       mix(st['windowText'], st['dark'], 0.40),
                        max(4, int(7 * s)), cap=True)
 
         if self.show_value:

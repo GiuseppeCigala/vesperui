@@ -25,15 +25,23 @@ class Panel(Container):
         if self.shadow and r > 0:
             draw_shadow(hdc, app, self.x, self.y, self.w, self.h, r,
                         spread=int(5 * s), alpha_steps=10)
-        if self.gradient is not None and r > 0:
-            fill_round_gradient_v(hdc, app, self.x, self.y, self.w, self.h, r,
-                                  self.gradient[0], self.gradient[1])
-        elif self.bg is not None:
+        if self.gradient is not None:
             if r > 0:
-                fill_round_rect(hdc, app, self.x, self.y, self.w, self.h, r, self.bg)
+                fill_round_gradient_v(hdc, app, self.x, self.y, self.w,
+                                      self.h, r, self.gradient[0],
+                                      self.gradient[1])
             else:
-                rc = wintypes.RECT(self.x, self.y, self.x + self.w, self.y + self.h)
-                user32.FillRect(hdc, ctypes.byref(rc), app.get_brush(self.bg))
+                fill_gradient_v(hdc, self.x, self.y, self.w, self.h,
+                                self.gradient[0], self.gradient[1])
+        elif self.bg is not None:
+            top = lighten(self.bg, 0.025)
+            bottom = darken(self.bg, 0.015)
+            if r > 0:
+                fill_round_gradient_v(hdc, app, self.x, self.y, self.w,
+                                      self.h, r, top, bottom)
+            else:
+                fill_gradient_v(hdc, self.x, self.y, self.w, self.h,
+                                top, bottom)
         if self.border is not None and r > 0:
             stroke_round_rect(hdc, app, self.x, self.y, self.w, self.h, r,
                               self.border, max(1, int(s)))

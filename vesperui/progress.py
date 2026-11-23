@@ -1,6 +1,6 @@
 """Owner-drawn progress bar."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class ProgressBar(Widget):
@@ -32,38 +32,47 @@ class ProgressBar(Widget):
     def draw(self, hdc, app):
         s = app.scale
         st = style_of(app)
-        accent = self.accent if self.accent is not None else st['highlight']
-        accent2 = st['highlight2']
         x, y, w, h = self.x, self.y, self.w, self.h
+        if self.accent is not None:
+            low = mix(self.accent, st['window'], 0.30)
+            high = self.accent
+        else:
+            low = scale_color(st, 0.10)
+            high = scale_color(
+                st, 0.80 if self.indeterminate else max(0.15, self.value))
 
         if self.orientation == 'v':
             radius = w // 2
-            fill_round_rect(hdc, app, x, y, w, h, radius, st['button'])
+            fill_round_gradient_h(hdc, app, x, y, w, h, radius,
+                                  mix(st['window'], st['button'], 0.45),
+                                  st['buttonHover'])
             if self.indeterminate:
                 seg = max(int(h * 0.28), int(8 * s))
                 ty = y + int(self.phase * max(1, h - seg))
                 fill_round_gradient_v(hdc, app, x, ty, w, seg, radius,
-                                      accent2, accent)
+                                      high, low)
             else:
                 filled = int(h * self.value)
                 if filled > 0:
                     seg = min(h, max(filled, radius * 2))
                     fill_round_gradient_v(hdc, app, x, y + h - seg, w, seg,
-                                          radius, accent2, accent)
+                                          radius, high, low)
         else:
             radius = h // 2
-            fill_round_rect(hdc, app, x, y, w, h, radius, st['button'])
+            fill_round_gradient_v(hdc, app, x, y, w, h, radius,
+                                  st['buttonHover'],
+                                  mix(st['window'], st['button'], 0.55))
             if self.indeterminate:
                 seg = max(int(w * 0.28), int(8 * s))
                 tx = x + int(self.phase * max(1, w - seg))
                 fill_round_gradient_h(hdc, app, tx, y, seg, h, radius,
-                                      accent, accent2)
+                                      low, high)
             else:
                 filled = int(w * self.value)
                 if filled > 0:
                     fill_round_gradient_h(hdc, app, x, y,
                                           max(filled, radius * 2), h,
-                                          radius, accent, accent2)
+                                          radius, low, high)
 
         stroke_round_rect(hdc, app, x, y, w, h, radius,
                           st['border'], max(1, int(s)))

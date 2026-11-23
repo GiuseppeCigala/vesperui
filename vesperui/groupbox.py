@@ -1,7 +1,7 @@
 """Group box container with a title and a border."""
 from .common import *  # noqa: F401,F403
 from .panel import Panel
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class GroupBox(Container):
@@ -40,7 +40,8 @@ class GroupBox(Container):
         r = int((self.radius if self.radius is not None else st.get('radius', 10)) * s)
         if self.bg is not None:
             fill_round_gradient_v(hdc, app, self.x, self.y, self.w, self.h, r,
-                                  lighten(self.bg, 0.03), self.bg)
+                                  lighten(self.bg, 0.04),
+                                  darken(self.bg, 0.01))
         border = self.border if self.border is not None else st['border']
         stroke_round_rect(hdc, app, self.x, self.y, self.w, self.h, r,
                           border, max(1, int(s)))
@@ -52,7 +53,7 @@ class GroupBox(Container):
             bx = self.x + int(10 * s)
             by = self.y + int(5 * s)
             fill_round_rect(hdc, app, bx, by, bar_w, bar_h, bar_w // 2,
-                            st['highlight'])
+                            scale_color(st, 0.55))
             rc = wintypes.RECT(bx + bar_w + int(6 * s), self.y + int(2 * s),
                                self.x + self.w - int(10 * s), self.y + th)
             gdi32.SetBkMode(hdc, TRANSPARENT)

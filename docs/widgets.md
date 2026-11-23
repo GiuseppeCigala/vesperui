@@ -12,6 +12,9 @@ Every widget derives from `vesperui.common.Widget` (containers derive from
 Callbacks follow a simple rule: value widgets receive the new value, action
 widgets receive no arguments.
 
+Controls share the Aurora palette: tracks, fills, selections and surfaces use
+the same soft teal-to-violet gradient and muted accent states.
+
 Screenshots of every widget are in the [widget gallery](gallery.md).
 
 ## Containers
@@ -70,7 +73,7 @@ Native `EDIT` control.
 - `on_change(text)` is called with the new contents.
 - `get_text()` / `set_text(text, notify=True)`
 - `type_text(text)` — simulate typing, useful in tests.
-- `multiline=True` adds a vertical scrollbar.
+- `multiline=True` adds a vertical scrollbar with compact chevron arrows.
 
 ### `CheckBox(text='', checked=False, on_change=None)`
 
@@ -90,7 +93,7 @@ exclusive.
 ![ComboBox](images/widgets/combo-box.png)
 
 Native combo box. `on_change(index, text)` is called when the selection
-changes.
+changes. The drop-down arrow is drawn compactly over the native control.
 
 - `current_index()`, `current_text()`
 - `set_index(index)`, `select(index)` — `select` also fires `on_change`.
@@ -180,7 +183,7 @@ Rotary control in the `0.0`–`1.0` range.
 
 ![MixerSlider](images/widgets/mixer-slider.png)
 
-Mixer-style fader with a large cap and a non-linear dB scale.
+Mixer-style fader with a large gray-gradient cap and a non-linear dB scale.
 
 - `db_to_fraction(db)` / `fraction_to_db(fraction)` (also module-level)
 - `value_text()` — formatted dB display value.
@@ -217,8 +220,8 @@ Native `SysListView32` report view.
 
 ![VUMeter](images/widgets/vu-meter.png)
 
-Analog needle meter with colored zones. The needle can be dragged or adjusted
-with the arrow keys and mouse wheel.
+Analog needle meter with a teal-to-violet gradient scale. The needle can be
+dragged or adjusted with the arrow keys and mouse wheel.
 
 - `set_value(value, notify=True)`, `reset_peak()`
 - `tick(dt=0.05)` — advance peak-hold decay; call it from a timer.
@@ -227,7 +230,8 @@ with the arrow keys and mouse wheel.
 
 ![LevelMeter](images/widgets/level-meter.png)
 
-One or two segmented bars with a dB scale. `BarVUMeter` is an alias.
+One or two segmented bars with a dB scale. Lit segments follow the soft
+teal-to-violet Aurora scale. `BarVUMeter` is an alias.
 
 - `set_level(index, value, notify=True)`
 - `set_levels(values, notify=True)`, `reset_peaks()`
@@ -238,7 +242,8 @@ One or two segmented bars with a dB scale. `BarVUMeter` is an alias.
 ![SpectrumAnalyzer](images/widgets/spectrum-analyzer.png)
 
 Animated log-frequency spectrum with a dB grid, smoothed levels, transients and
-peak caps.
+peak caps. Bars use the same soft teal-to-violet gradient vertically, from low
+levels at the bottom to high levels at the top.
 
 - `set_spectrum(values, notify=True)` — normalized `0.0`–`1.0` values.
 - `set_spectrum_db(db_values, notify=True)` — dB values.

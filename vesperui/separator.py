@@ -17,15 +17,23 @@ class Separator(Widget):
 
     def draw(self, hdc, app):
         s = max(1, int(app.scale))
-        color = self.color if self.color is not None else style_of(app)['mid']
-        pen = app.get_pen(color, s)
-        old = gdi32.SelectObject(hdc, pen)
+        st = style_of(app)
+        color = self.color if self.color is not None \
+            else mix(st['border'], st['mid'], 0.45)
+        faded = mix(st['window'], color, 0.25)
         if self.orientation == 'h':
             y = self.y + self.h // 2
-            gdi32.MoveToEx(hdc, self.x, y, None)
-            gdi32.LineTo(hdc, self.x + self.w, y)
+            mid = self.x + self.w // 2
+            fill_gradient_h(hdc, self.x, y, max(1, mid - self.x), s,
+                            faded, color)
+            fill_gradient_h(hdc, mid, y,
+                            max(1, self.x + self.w - mid), s,
+                            color, faded)
         else:
             x = self.x + self.w // 2
-            gdi32.MoveToEx(hdc, x, self.y, None)
-            gdi32.LineTo(hdc, x, self.y + self.h)
-        gdi32.SelectObject(hdc, old)
+            mid = self.y + self.h // 2
+            fill_gradient_v(hdc, x, self.y, s, max(1, mid - self.y),
+                            faded, color)
+            fill_gradient_v(hdc, x, mid, s,
+                            max(1, self.y + self.h - mid),
+                            color, faded)

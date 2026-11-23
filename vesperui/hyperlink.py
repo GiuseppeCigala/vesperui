@@ -1,6 +1,6 @@
 """Clickable hyperlink label."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class Hyperlink(Widget):
@@ -35,9 +35,11 @@ class Hyperlink(Widget):
 
     def draw(self, hdc, app):
         rc = wintypes.RECT(self.x, self.y, self.x + self.w, self.y + self.h)
-        color = self.color if self.color is not None else style_of(app)['highlight']
+        st = style_of(app)
+        color = self.color if self.color is not None \
+            else scale_color(st, 0.55)
         if self.hovered:
-            color = lighten(color, 0.20)
+            color = lighten(color, 0.14)
         gdi32.SetBkMode(hdc, TRANSPARENT)
         gdi32.SetTextColor(hdc, COLORREF(*color))
         of = gdi32.SelectObject(hdc, app.get_font(self.size, False, True))

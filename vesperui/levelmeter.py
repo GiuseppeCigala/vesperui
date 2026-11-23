@@ -1,6 +1,6 @@
 """Owner-drawn segmented stereo level meter (horizontal or vertical)."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 # dB breakpoints mapped to a 0..1 position along the bar. The scale is
 # deliberately non-linear so that the top 20 dB use most of the length.
@@ -12,8 +12,6 @@ DB_STOPS = (
 
 VERTICAL_DB_TICKS = (0.0, -3.0, -6.0, -10.0, -20.0, -30.0, -40.0, -50.0)
 HORIZONTAL_DB_TICKS = (0.0, -3.0, -6.0, -10.0, -20.0, -30.0, -40.0, -60.0)
-
-PEAK_COLOR = (255, 96, 200)
 
 
 def db_to_fraction(db):
@@ -48,8 +46,8 @@ class LevelMeter(Widget):
     ``levels`` may be a single number or a sequence (for example ``L`` and
     ``R``). Each level is a fraction between 0.0 and 1.0. Drag a bar to set
     that channel, or focus the widget and use the arrow keys on the active
-    channel. Lit segments run from cyan to magenta as the level rises and a
-    bright peak line remembers the maximum before falling back.
+    channel. Lit segments follow the soft teal-to-violet Aurora scale and a
+    muted peak line remembers the maximum before falling back.
     """
 
     def __init__(self, levels=(0.0, 0.0), orientation='v',
@@ -229,12 +227,11 @@ class LevelMeter(Widget):
         user32.FillRect(hdc, ctypes.byref(rc), app.get_brush(color))
 
     def _color_at(self, fraction, st):
-        t = max(0.0, min(1.0, fraction))
-        return mix(st['highlight'], st['highlight2'], t)
+        return scale_color(st, fraction)
 
     def _db_color(self, db, st):
         if db >= -6.0:
-            return mix(st['window'], PEAK_COLOR, 0.72)
+            return mix(st['mid'], scale_color(st, 1.0), 0.42)
         return st['mid']
 
     @staticmethod
@@ -253,35 +250,36 @@ class LevelMeter(Widget):
         while pos + seg <= length:
             a, b = pos, pos + seg
             color = self._color_at((a + b) / 2.0 / length, st)
-            dark = mix(st['window'], color, 0.22)
+            dark = mix(st['window'], color, 0.24)
             lit = max(0.0, min(float(b), level_px) - a)
             if vertical:
                 self._fill(hdc, app, bx, by + length - b, bw, b - a, dark)
                 if lit > 0:
                     hh = int(round(lit))
                     self._fill(hdc, app, bx, by + length - a - hh, bw, hh,
-                               lighten(color, 0.06))
+                               lighten(color, 0.05))
             else:
                 self._fill(hdc, app, bx + a, by, b - a, bh, dark)
                 if lit > 0:
                     self._fill(hdc, app, bx + a, by, int(round(lit)), bh,
-                               lighten(color, 0.06))
+                               lighten(color, 0.05))
             pos += seg + gap
 
         peak_px = int(round(peak * length))
-        glow = mix(st['window'], PEAK_COLOR, 0.50)
-        thick = max(4, int(5 * s))
+        peak_color = mix(st['windowText'], scale_color(st, 1.0), 0.40)
+        glow = mix(st['window'], peak_color, 0.35)
+        thick = max(4, int(4 * s))
         core = max(2, int(2 * s))
         if vertical:
             py = by + length - peak_px
             self._fill(hdc, app, bx - int(s), py - thick // 2,
                        bw + int(2 * s), thick, glow)
-            self._fill(hdc, app, bx, py - core // 2, bw, core, PEAK_COLOR)
+            self._fill(hdc, app, bx, py - core // 2, bw, core, peak_color)
         else:
             px = bx + peak_px
             self._fill(hdc, app, px - thick // 2, by - int(s),
                        thick, bh + int(2 * s), glow)
-            self._fill(hdc, app, px - core // 2, by, core, bh, PEAK_COLOR)
+            self._fill(hdc, app, px - core // 2, by, core, bh, peak_color)
 
     def _draw_db_vertical(self, hdc, app, rects):
         s = app.scale

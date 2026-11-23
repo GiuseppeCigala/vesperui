@@ -1,6 +1,6 @@
 """Owner-drawn toggle switch."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class ToggleSwitch(Widget):
@@ -46,21 +46,25 @@ class ToggleSwitch(Widget):
         s = app.scale
         st = style_of(app)
         x, y, w, h = self.x, self.y, self.w, self.h
-        accent = self.accent if self.accent is not None else st['highlight']
-        accent2 = st['highlight2']
+        accent = self.accent if self.accent is not None else None
         if self.checked:
             if self.hovered or self.focused:
                 stroke_round_rect(hdc, app, x - 1, y - 1, w + 2, h + 2,
                                   h // 2 + 1, st['glow'], max(2, int(2 * s)))
-            fill_round_gradient_h(hdc, app, x, y, w, h, h // 2, accent, accent2)
-            border = accent
+            if accent is not None:
+                left, right = mix(accent, st['window'], 0.15), accent
+            else:
+                left, right = scale_color(st, 0.20), scale_color(st, 0.80)
+            fill_round_gradient_h(hdc, app, x, y, w, h, h // 2, left, right)
+            border = right
         else:
             if self.hovered or self.focused:
                 stroke_round_rect(hdc, app, x - 1, y - 1, w + 2, h + 2,
                                   h // 2 + 1, st['glow'], max(2, int(2 * s)))
-            fill_round_rect(hdc, app, x, y, w, h, h // 2,
-                            mix(st['button'], st['mid'], 0.55))
-            border = st['mid']
+            fill_round_gradient_v(hdc, app, x, y, w, h, h // 2,
+                                  mix(st['button'], st['mid'], 0.35),
+                                  mix(st['button'], st['mid'], 0.65))
+            border = mix(st['border'], st['mid'], 0.35)
         stroke_round_rect(hdc, app, x, y, w, h, h // 2, border,
                           max(1, int(s)))
 

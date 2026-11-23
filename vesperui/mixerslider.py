@@ -206,15 +206,19 @@ class MixerSlider(Widget):
                               max(2, int(2 * s)))
 
         fill_round_gradient_v(hdc, app, kx, ky, knob_w, knob_h, radius,
-                              (241, 249, 249), (203, 220, 222))
+                              mix(st['buttonHover'], st['dark'], 0.30),
+                              mix(st['button'], st['window'], 0.55))
         stroke_round_rect(hdc, app, kx, ky, knob_w, knob_h, radius,
-                          (58, 68, 72), max(1, int(s)))
+                          mix(st['border'], st['mid'], 0.30),
+                          max(1, int(s)))
         gloss_h = max(2, int(4 * s))
         fill_round_rect(hdc, app, kx + int(5 * s), ky + int(6 * s),
                         knob_w - int(10 * s), gloss_h,
-                        max(1, int(2 * s)), (252, 255, 255))
+                        max(1, int(2 * s)),
+                        mix(st['windowText'], st['mid'], 0.55))
 
-        pen = app.get_pen((40, 48, 52), max(1, int(2 * s)))
+        pen = app.get_pen(mix(st['dark'], st['window'], 0.30),
+                          max(1, int(2 * s)))
         old = gdi32.SelectObject(hdc, pen)
         if vertical:
             gdi32.MoveToEx(hdc, kx + int(5 * s), cy, None)
@@ -232,15 +236,18 @@ class MixerSlider(Widget):
         fraction = fader_db_to_fraction(self.value)
         travel = max(1, abs(high - low))
         track_w = max(3, int(4 * s))
-        track_color = mix(st['window'], (0, 0, 0), 0.45)
+        track_low = mix(st['window'], st['button'], 0.40)
+        track_high = mix(st['window'], (0, 0, 0), 0.50)
 
         if self.orientation == 'v':
-            fill_round_rect(hdc, app, center - track_w // 2, high,
-                            track_w, travel, track_w // 2, track_color)
+            fill_round_gradient_h(hdc, app, center - track_w // 2, high,
+                                  track_w, travel, track_w // 2,
+                                  track_low, track_high)
             pos = low - int(round(fraction * travel))
         else:
-            fill_round_rect(hdc, app, low, center - track_w // 2,
-                            travel, track_w, track_w // 2, track_color)
+            fill_round_gradient_v(hdc, app, low, center - track_w // 2,
+                                  travel, track_w, track_w // 2,
+                                  track_low, track_high)
             pos = low + int(round(fraction * travel))
 
         self._draw_scale(hdc, app, low, high, center, s, st)

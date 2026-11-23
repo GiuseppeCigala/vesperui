@@ -49,6 +49,6 @@ from .separator import Separator  # noqa: F401
 from .hyperlink import Hyperlink  # noqa: F401
 from .tabbar import TabBar  # noqa: F401
 from .menu import MenuBar, Menu  # noqa: F401
-from .style import AURORA, FUSION, make_style, style_of  # noqa: F401
+from .style import AURORA, FUSION, make_style, scale_color, style_of  # noqa: F401
 from .dialogs import *  # noqa: F401,F403
 from .app import App, _DoubleBuffer  # noqa: F401

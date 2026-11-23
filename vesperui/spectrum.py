@@ -2,7 +2,7 @@
 import math
 
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import SCALE_SPLIT, scale_color, style_of
 
 DB_TICKS = (-12, -18, -24, -30, -36, -42, -48, -54, -60)
 FREQ_TICKS = (30, 40, 60, 100, 150, 200, 300, 400, 600,
@@ -12,8 +12,8 @@ FREQ_TICKS = (30, 40, 60, 100, 150, 200, 300, 400, 600,
 class SpectrumAnalyzer(Widget):
     """Animated spectrum display driven by :meth:`set_spectrum`.
 
-    Each bin has three levels: a smoothed body (accent2), a hot segment for
-    the current transient (red) and a slowly falling peak cap (accent). Bars
+    Each bin has three levels: a smoothed body with a vertical teal-to-violet
+    gradient, a brighter transient tint and a slowly falling peak cap. Bars
     are laid out on a logarithmic frequency axis and the vertical axis is
     labelled in dB. Call ``set_spectrum`` with a list of 0..1 values at each
     frame of the audio data.
@@ -183,13 +183,32 @@ class SpectrumAnalyzer(Widget):
             last_right = x + tw / 2.0
         gdi32.SelectObject(hdc, of)
 
+    def _fill_body(self, hdc, x, bottom, width, plot_height, top_h, st):
+        """Fill a bar with the vertical teal-to-violet scale."""
+        if top_h <= 0:
+            return
+        if self.body_color is not None:
+            fill_gradient_v(hdc, x, bottom - top_h, width, top_h,
+                            self.body_color,
+                            mix(self.body_color, st['window'], 0.22))
+            return
+
+        split_px = int(round(SCALE_SPLIT * plot_height))
+        if top_h <= split_px:
+            fill_gradient_v(hdc, x, bottom - top_h, width, top_h,
+                            scale_color(st, top_h / float(plot_height)),
+                            scale_color(st, 0.0))
+            return
+
+        fill_gradient_v(hdc, x, bottom - split_px, width, split_px,
+                        scale_color(st, SCALE_SPLIT), scale_color(st, 0.0))
+        upper_h = top_h - split_px
+        if upper_h > 0:
+            fill_gradient_v(hdc, x, bottom - top_h, width, upper_h,
+                            scale_color(st, top_h / float(plot_height)),
+                            scale_color(st, SCALE_SPLIT))
+
     def _draw_bars(self, hdc, app, left, top, width, height, s, st):
-        body = self.body_color if self.body_color is not None \
-            else st['highlight2']
-        cap = self.cap_color if self.cap_color is not None \
-            else st['highlight']
-        hot = self.hot_color if self.hot_color is not None \
-            else (255, 72, 120)
         gap = max(1, int(1 * s))
         bin_w = width / float(self.bins)
         bar_w = max(1, int(round(bin_w)) - gap)
@@ -200,12 +219,26 @@ class SpectrumAnalyzer(Widget):
             inst_h = int(round(self.instant[i] * height))
             peak_h = int(round(self.peaks[i] * height))
             if avg_h > 0:
-                self._fill(hdc, app, x0, bottom - avg_h, bar_w, avg_h, body)
+                self._fill_body(hdc, x0, bottom, bar_w, height, avg_h, st)
             if inst_h > avg_h:
+                if self.hot_color is not None:
+                    hot = self.hot_color
+                elif self.body_color is not None:
+                    hot = lighten(self.body_color, 0.16)
+                else:
+                    hot = lighten(scale_color(st, inst_h / float(height)),
+                                  0.14)
                 self._fill(hdc, app, x0, bottom - inst_h, bar_w,
                            inst_h - avg_h, hot)
             above = max(avg_h, inst_h)
             if peak_h > above:
+                if self.cap_color is not None:
+                    cap = self.cap_color
+                elif self.body_color is not None:
+                    cap = mix(self.body_color, st['windowText'], 0.40)
+                else:
+                    cap = mix(scale_color(st, peak_h / float(height)),
+                              st['windowText'], 0.40)
                 self._fill(hdc, app, x0, bottom - peak_h, bar_w,
                            peak_h - above, cap)
 

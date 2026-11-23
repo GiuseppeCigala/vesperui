@@ -21,8 +21,8 @@ import showcase_audio
 
 STYLE = ui.AURORA
 MID = STYLE["mid"]
-ACCENT = STYLE["highlight"]
-ACCENT2 = STYLE["highlight2"]
+ACCENT = ui.scale_color(STYLE, 0.55)
+ACCENT2 = ui.scale_color(STYLE, 0.85)
 
 
 class GalleryScrollView(ui.ScrollView):

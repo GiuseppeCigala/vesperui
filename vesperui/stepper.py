@@ -1,6 +1,6 @@
 """Owner-drawn numeric stepper with decrement and increment buttons."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class Stepper(Widget):
@@ -124,12 +124,14 @@ class Stepper(Widget):
                 fill_round_gradient_v(hdc, app, bx + 2, y + 2,
                                       max(1, bw - 4), max(1, h - 4),
                                       max(2, radius - 2),
-                                      st['highlight'], st['highlight2'])
-                glyph = st['highlightedText']
+                                      scale_color(st, 0.25),
+                                      scale_color(st, 0.75))
+                glyph = st['windowText']
             elif hovered and not disabled:
-                fill_round_rect(hdc, app, bx + 2, y + 2,
-                                max(1, bw - 4), max(1, h - 4),
-                                max(2, radius - 2), st['buttonHover'])
+                fill_round_gradient_v(hdc, app, bx + 2, y + 2,
+                                      max(1, bw - 4), max(1, h - 4),
+                                      max(2, radius - 2),
+                                      st['buttonHover'], st['button'])
                 glyph = st['windowText']
             else:
                 glyph = st['disabled'] if disabled else st['windowText']

@@ -112,8 +112,8 @@ def _print_combo_text(hdc, app, widget, inset):
     field_h = max(1, widget.h - 2 * inset)
     saved = ui.gdi32.SaveDC(hdc)
     try:
-        rc = wintypes.RECT(0, 0, field_w, field_h)
-        ui.user32.FillRect(hdc, ctypes.byref(rc), app.get_brush(style["base"]))
+        ui.fill_gradient_v(hdc, 0, 0, field_w, field_h,
+                           ui.lighten(style["base"], 0.03), style["base"])
         pad = max(4, int(6 * app.scale))
         text_rc = wintypes.RECT(pad, 0, max(pad, field_w - pad), field_h)
         ui.gdi32.SetBkMode(hdc, ui.TRANSPARENT)

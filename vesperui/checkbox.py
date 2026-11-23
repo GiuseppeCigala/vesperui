@@ -1,6 +1,6 @@
 """Fusion-style owner-drawn check box."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class CheckBox(Widget):
@@ -59,16 +59,19 @@ class CheckBox(Widget):
                               radius + 1, st['glow'], max(2, int(2 * s)))
 
         border = st['focus'] if self.focused else (
-            st['highlight'] if self.hovered else st['border'])
+            scale_color(st, 0.55) if (self._checked or self.hovered)
+            else st['border'])
         if self._checked:
             fill_round_gradient_v(hdc, app, bx, by, box, box, radius,
-                                  st['highlight'], st['highlight2'])
+                                  scale_color(st, 0.25),
+                                  scale_color(st, 0.75))
         else:
-            fill_round_rect(hdc, app, bx, by, box, box, radius, st['base'])
+            fill_round_gradient_v(hdc, app, bx, by, box, box, radius,
+                                  lighten(st['base'], 0.03), st['base'])
         stroke_round_rect(hdc, app, bx, by, box, box, radius, border, max(1, int(s)))
 
         if self._checked:
-            pen = app.get_pen(st['highlightedText'], max(2, int(2 * s)))
+            pen = app.get_pen(st['windowText'], max(2, int(2 * s)))
             old = gdi32.SelectObject(hdc, pen)
             gdi32.MoveToEx(hdc, bx + int(4 * s), by + int(7.5 * s), None)
             gdi32.LineTo(hdc, bx + int(6.5 * s), by + int(10.5 * s))

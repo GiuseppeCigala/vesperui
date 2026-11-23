@@ -262,7 +262,7 @@ def build_app():
 
     action_buttons = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=8))
     action_buttons.add(ui.Button('Ping', on_click=on_ping))
-    action_buttons.add(ui.Button('Apply', accent=style['highlight'],
+    action_buttons.add(ui.Button('Apply', accent=ui.scale_color(style, 0.55),
                                  on_click=on_apply))
     action_buttons.add(ui.Button('Reset', on_click=lambda: reset_all()))
 
@@ -468,7 +468,7 @@ def build_app():
                       color=style['mid']))
     card_buttons = ui.Panel(layout=ui.HBoxLayout(padding=0, spacing=8))
     card_buttons.add(ui.Button('Hover me'))
-    card_buttons.add(ui.Button('Accent', accent=style['highlight2']))
+    card_buttons.add(ui.Button('Accent', accent=ui.scale_color(style, 0.85)))
     card.add(card_buttons)
     right.add(card)
 

@@ -1,6 +1,6 @@
 """Owner-drawn tab bar."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class TabBar(Widget):
@@ -64,8 +64,7 @@ class TabBar(Widget):
         self._app = app
         s = app.scale
         st = style_of(app)
-        accent = self.accent if self.accent is not None else st['highlight']
-        accent2 = st['highlight2']
+        accent = self.accent if self.accent is not None else None
         radius = self.h // 2
         for i, (tx, tw) in enumerate(self._tab_rects()):
             selected = i == self.index
@@ -74,12 +73,19 @@ class TabBar(Widget):
                     stroke_round_rect(hdc, app, tx - 1, self.y - 1, tw + 2,
                                       self.h + 2, radius + 1, st['glow'],
                                       max(2, int(2 * s)))
-                fill_round_gradient_h(hdc, app, tx, self.y, tw, self.h, radius,
-                                      accent, accent2)
-                fg = st['highlightedText']
+                if accent is not None:
+                    left, right = mix(accent, st['window'], 0.15), accent
+                    fg = st['highlightedText']
+                else:
+                    left, right = scale_color(st, 0.20), scale_color(st, 0.80)
+                    fg = st['windowText']
+                fill_round_gradient_h(hdc, app, tx, self.y, tw, self.h,
+                                      radius, left, right)
             else:
-                bg = st['buttonHover'] if self.hovered else st['button']
-                fill_round_rect(hdc, app, tx, self.y, tw, self.h, radius, bg)
+                top = st['buttonHover'] if self.hovered else st['button']
+                fill_round_gradient_v(hdc, app, tx, self.y, tw, self.h,
+                                      radius, top,
+                                      mix(st['window'], top, 0.55))
                 fg = st['buttonText']
             rc = wintypes.RECT(tx, self.y, tx + tw, self.y + self.h)
             gdi32.SetBkMode(hdc, TRANSPARENT)

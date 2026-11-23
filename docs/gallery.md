@@ -146,7 +146,7 @@ Rotary control with an accent ring, pointer and value plate.
 
 ![MixerSlider](images/widgets/mixer-slider.png)
 
-Non-linear dB fader with a large cap.
+Non-linear dB fader with a large gray-gradient cap.
 
 ### TabBar
 
@@ -174,13 +174,15 @@ Analog needle meter with peak hold, drag and arrow-key adjustment.
 
 ![LevelMeter](images/widgets/level-meter.png)
 
-Segmented dB meters in vertical and horizontal orientations.
+Segmented dB meters in vertical and horizontal orientations, using the soft
+Aurora scale.
 
 ### SpectrumAnalyzer
 
 ![SpectrumAnalyzer](images/widgets/spectrum-analyzer.png)
 
-Log-frequency bars with a dB grid, transients and peak caps.
+Log-frequency bars with a dB grid, transients and peak caps. The bars use the
+same teal-to-violet gradient vertically, from low levels to high levels.
 
 ## Graphics
 

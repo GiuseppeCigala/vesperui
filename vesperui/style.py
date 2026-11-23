@@ -29,6 +29,28 @@ AURORA = {
 FUSION = AURORA
 
 
+# Separation point of the shared teal-to-violet scale (0 dB on the VU meter).
+SCALE_SPLIT = 0.62
+
+
+def scale_color(style, fraction):
+    """Soft teal-to-violet color for a 0..1 level or scale position.
+
+    The stops derive from the Aurora ``highlight`` and ``highlight2`` colors
+    blended with the panel background, so meters and analyzers stay readable
+    without glowing.
+    """
+    low = mix(style['highlight'], style['panel'], 0.30)
+    mid = mix(mix(style['highlight'], style['highlight2'], 0.55),
+              style['panel'], 0.18)
+    high = mix(style['highlight2'], style['panel'], 0.24)
+    fraction = max(0.0, min(1.0, float(fraction)))
+    split = SCALE_SPLIT
+    if fraction <= split:
+        return mix(low, mid, fraction / split)
+    return mix(mid, high, (fraction - split) / (1.0 - split))
+
+
 def make_style(palette):
     """Build a coherent modern style from a simple theme palette."""
     bg = palette['bg']

@@ -8,6 +8,20 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- The VU meter, LevelMeter and SpectrumAnalyzer now share the soft
+  teal-to-violet Aurora scale, with muted ticks and labels and less glaring
+  needles and peaks.
+- SpectrumAnalyzer bars now use the teal-to-violet gradient vertically,
+  from low levels at the bottom to high levels at the top.
+- Applied the Aurora scale to the remaining widgets: tracks, sliders, progress
+  bars, toggles, check boxes, tabs, scrollbars and surfaces now use subtle
+  gradients, softer accents and gentler glows.
+- TextBox scrollbar and ComboBox drop-down arrows are drawn as compact
+  chevrons over the native controls.
+- MixerSlider uses a dark gray/black gradient cap.
+
 ## [0.1.1] - 2026-11-22
 
 ### Added

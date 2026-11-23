@@ -2,7 +2,7 @@
 
 from .common import *  # noqa: F401,F403
 from .native import _NativeWidget
-from .style import style_of
+from .style import scale_color, style_of
 
 # ============================================================================
 # SCROLLVIEW
@@ -281,8 +281,9 @@ class ScrollView(Container):
         gdi32.ExtSelectClipRgn(hdc, rgn, RGN_AND)
         gdi32.DeleteObject(rgn)
         if self.bg is not None:
-            rc = wintypes.RECT(self.x, self.y, self.x + self.w, self.y + self.h)
-            user32.FillRect(hdc, ctypes.byref(rc), app.get_brush(self.bg))
+            fill_gradient_v(hdc, self.x, self.y, self.w, self.h,
+                            lighten(self.bg, 0.02),
+                            darken(self.bg, 0.01))
         gdi32.IntersectClipRect(hdc, self.x, self.y,
                                 self.x + self._viewport_w(), self.y + self._viewport_h())
         super().draw(hdc, app)
@@ -296,30 +297,34 @@ class ScrollView(Container):
         sw = self._sb_w()
         st = style_of(app)
         track = st['panel']
-        thumb = st['mid']
-        thumb_hot = st['highlight']
+        thumb = mix(st['panel'], st['mid'], 0.65)
+        thumb_hot = scale_color(st, 0.60)
         if self._has_vsb():
             sx = self.x + self.w - sw
-            rc = wintypes.RECT(sx, self.y, sx + sw, self.y + self._viewport_h())
-            user32.FillRect(hdc, ctypes.byref(rc), app.get_brush(track))
+            fill_gradient_h(hdc, sx, self.y, sw, self._viewport_h(),
+                            mix(st['window'], track, 0.40), track)
             content = self._content_h + 2 * self.padding; vh = self._viewport_h()
             th = max(int(24 * s), int(vh * vh / content))
             ty = self.y + (int((vh - th) * (self.scroll_y / self._max_scroll_y()))
                            if self._max_scroll_y() > 0 else 0)
             c = thumb_hot if (self._drag_axis == 'y' or self._sb_hovered == 'y') else thumb
             pad = max(2, int(3 * s)); rad = max(3, (sw - 2 * pad))
-            fill_round_rect(hdc, app, sx + pad, ty + pad, sw - 2 * pad, th - 2 * pad, rad, c)
+            fill_round_gradient_v(hdc, app, sx + pad, ty + pad,
+                                  sw - 2 * pad, th - 2 * pad, rad,
+                                  lighten(c, 0.05), darken(c, 0.04))
         if self._has_hsb():
             sy = self.y + self.h - sw; vw = self._viewport_w()
-            rc = wintypes.RECT(self.x, sy, self.x + vw, sy + sw)
-            user32.FillRect(hdc, ctypes.byref(rc), app.get_brush(track))
+            fill_gradient_v(hdc, self.x, sy, vw, sw,
+                            mix(st['window'], track, 0.40), track)
             content = self._content_w + 2 * self.padding
             tw = max(int(24 * s), int(vw * vw / content))
             tx = self.x + (int((vw - tw) * (self.scroll_x / self._max_scroll_x()))
                            if self._max_scroll_x() > 0 else 0)
             c = thumb_hot if (self._drag_axis == 'x' or self._sb_hovered == 'x') else thumb
             pad = max(2, int(3 * s)); rad = max(3, (sw - 2 * pad))
-            fill_round_rect(hdc, app, tx + pad, sy + pad, tw - 2 * pad, sw - 2 * pad, rad, c)
+            fill_round_gradient_v(hdc, app, tx + pad, sy + pad,
+                                  tw - 2 * pad, sw - 2 * pad, rad,
+                                  lighten(c, 0.05), darken(c, 0.04))
         if self._has_vsb() and self._has_hsb():
             rc = wintypes.RECT(self.x + self.w - sw, self.y + self.h - sw,
                                self.x + self.w, self.y + self.h)

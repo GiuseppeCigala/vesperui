@@ -176,7 +176,8 @@ class ColorPicker(Widget):
         if self.focused or self._drag:
             stroke_round_rect(hdc, app, x - 1, y - 1, w + 2, h + 2,
                               radius + 1, st['glow'], max(2, int(2 * s)))
-        fill_round_rect(hdc, app, x, y, w, h, radius, st['panel'])
+        fill_round_gradient_v(hdc, app, x, y, w, h, radius,
+                              st['panel'], st['window'])
         stroke_round_rect(hdc, app, x, y, w, h, radius, st['border'],
                           max(1, int(s)))
 
@@ -224,8 +225,8 @@ class ColorPicker(Widget):
                               st['border'], max(1, int(s)))
 
             my = hy + int(self.hue * max(1, hh - 1))
-            for color, width in (((8, 8, 8), max(2, int(3 * s))),
-                                 ((255, 255, 255), max(1, int(s)))):
+            for color, width in ((st['window'], max(2, int(3 * s))),
+                                 (st['windowText'], max(1, int(s)))):
                 pen = app.get_pen(color, width)
                 old = gdi32.SelectObject(hdc, pen)
                 gdi32.MoveToEx(hdc, hx - max(1, int(2 * s)), my, None)
@@ -235,9 +236,9 @@ class ColorPicker(Widget):
         if sw > 0 and sh > 0:
             cx = sx + int(self.sat * max(1, sw - 1))
             cy = sy + int((1.0 - self.val) * max(1, sh - 1))
-            fill_round_rect(hdc, app, cx - 5, cy - 5, 10, 10, 5, (8, 8, 8))
+            fill_round_rect(hdc, app, cx - 5, cy - 5, 10, 10, 5, st['window'])
             fill_round_rect(hdc, app, cx - 3, cy - 3, 6, 6, 3,
-                            (255, 255, 255))
+                            st['windowText'])
 
         if pw > 0 and ph > 0:
             fill_round_rect(hdc, app, px, py, pw, ph, max(3, int(5 * s)),

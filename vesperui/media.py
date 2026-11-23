@@ -2,7 +2,7 @@
 from .common import *  # noqa: F401,F403
 from .layouts import HBoxLayout
 from .panel import Panel
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class MediaButton(Widget):
@@ -110,21 +110,30 @@ class MediaButton(Widget):
         st = style_of(app)
         x, y, w, h = self.x, self.y, self.w, self.h
         radius = max(4, int(10 * s))
-        accent = self.accent if self.accent is not None else st['highlight']
 
         if self.active:
-            top = lighten(accent, 0.10)
-            bottom = darken(accent, 0.10)
-            border = lighten(accent, 0.35) if (self.hovered or self.focused) \
-                else accent
-            icon = st['highlightedText']
-            glow = mix(st['window'], accent, 0.45)
+            if self.accent is not None:
+                acc = self.accent
+                top = mix(acc, st['windowText'], 0.10)
+                bottom = mix(acc, st['window'], 0.12)
+                border = mix(acc, st['windowText'], 0.25) \
+                    if (self.hovered or self.focused) \
+                    else mix(acc, st['window'], 0.15)
+                glow = mix(st['window'], acc, 0.30)
+            else:
+                top = scale_color(st, 0.75)
+                bottom = scale_color(st, 0.30)
+                border = mix(scale_color(st, 0.75), st['windowText'], 0.18) \
+                    if (self.hovered or self.focused) \
+                    else scale_color(st, 0.68)
+                glow = mix(st['window'], scale_color(st, 0.55), 0.30)
+            icon = st['windowText']
         else:
             top = st['buttonPressed'] if self.pressed else st['buttonHover']
             bottom = st['buttonPressed'] if self.pressed else st['button']
             border = st['focus'] if self.focused else (
-                st['highlight'] if self.hovered else st['border'])
-            icon = st['highlight'] if (self.hovered or self.focused) \
+                scale_color(st, 0.55) if self.hovered else st['border'])
+            icon = scale_color(st, 0.55) if (self.hovered or self.focused) \
                 else st['buttonText']
             glow = st['glow']
 

@@ -3,7 +3,7 @@
 from .common import *  # noqa: F401,F403
 from .common import _SetWndPtr
 from .native import _NativeWidget
-from .style import style_of
+from .style import scale_color, style_of
 
 class ListView(_NativeWidget):
     _win_class = 'SysListView32'
@@ -68,16 +68,20 @@ class ListView(_NativeWidget):
         st = style_of(self._app)
         if cd.dwDrawStage == CDDS_PREPAINT:
             rc = cd.rc
-            user32.FillRect(cd.hdc, ctypes.byref(rc),
-                            self._app.get_brush(st['card']))
+            fill_gradient_v(cd.hdc, rc.left, rc.top,
+                            max(1, rc.right - rc.left),
+                            max(1, rc.bottom - rc.top),
+                            lighten(st['card'], 0.03), st['card'])
             return CDRF_NOTIFYITEMDRAW
         if cd.dwDrawStage in (CDDS_ITEMPREPAINT,
                               CDDS_ITEMPREPAINT | CDDS_SUBITEM):
             index = int(cd.dwItemSpec)
             title = self.columns[index][0] if index < len(self.columns) else ''
             rc = cd.rc
-            user32.FillRect(cd.hdc, ctypes.byref(rc),
-                            self._app.get_brush(st['card']))
+            fill_gradient_v(cd.hdc, rc.left, rc.top,
+                            max(1, rc.right - rc.left),
+                            max(1, rc.bottom - rc.top),
+                            lighten(st['card'], 0.03), st['card'])
             gdi32.SetBkMode(cd.hdc, TRANSPARENT)
             gdi32.SetTextColor(cd.hdc, COLORREF(*st['windowText']))
             of = gdi32.SelectObject(cd.hdc, self._app.get_font(13, True))
@@ -127,13 +131,18 @@ class ListView(_NativeWidget):
             sub = cd.iSubItem
             text = row[sub] if 0 <= sub < len(row) else ''
             selected = (item == self._cd_selected)
+            rc = cd.nmcd.rc
+            width = max(1, rc.right - rc.left)
+            height = max(1, rc.bottom - rc.top)
             if selected:
-                bg, fg = st['highlight'], st['highlightedText']
+                fill_gradient_h(hdc, rc.left, rc.top, width, height,
+                                scale_color(st, 0.25), scale_color(st, 0.75))
+                fg = st['windowText']
             else:
                 bg = st['alternateBase'] if item % 2 else st['base']
+                fill_gradient_v(hdc, rc.left, rc.top, width, height,
+                                lighten(bg, 0.015), darken(bg, 0.01))
                 fg = st['windowText']
-            rc = cd.nmcd.rc
-            user32.FillRect(hdc, ctypes.byref(rc), self._app.get_brush(bg))
             gdi32.SetBkMode(hdc, TRANSPARENT)
             gdi32.SetTextColor(hdc, COLORREF(*fg))
             of = gdi32.SelectObject(hdc, self._app.get_font(self.font_size))

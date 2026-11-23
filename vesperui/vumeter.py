@@ -1,12 +1,17 @@
-"""Owner-drawn analog VU meter with a needle and colored zones."""
+"""Owner-drawn analog VU meter with a needle and a soft gradient scale."""
 import math
 
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import SCALE_SPLIT, scale_color, style_of
 
 START_ANGLE = 195.0   # degrees, left end of the scale (screen coordinates)
 SWEEP = 150.0         # total arc width in degrees
-SPLIT = 0.62          # fraction where the cyan zone turns magenta (0 dB)
+SPLIT = SCALE_SPLIT   # 0 dB reference used to emphasise the label and tick
+
+# Local binding for the polygon-region helper used by the gradient arc.
+gdi32.CreatePolygonRgn.argtypes = [ctypes.POINTER(wintypes.POINT),
+                                   ctypes.c_int, ctypes.c_int]
+gdi32.CreatePolygonRgn.restype = wintypes.HRGN
 
 DEFAULT_SCALE = (
     ('20', 0.00), ('10', 0.10), ('7', 0.20), ('5', 0.30), ('3', 0.40),
@@ -16,7 +21,7 @@ DEFAULT_SCALE = (
 
 
 class VUMeter(Widget):
-    """Analog audio level meter: cyan zone up to 0 dB, magenta in the red.
+    """Analog audio level meter with a soft teal-to-violet scale.
 
     Drag the needle with the mouse or focus the widget and use the arrow
     keys. The value is always a fraction between 0.0 and 1.0. A peak-hold
@@ -131,31 +136,72 @@ class VUMeter(Widget):
         return False  # let the surrounding ScrollView handle the wheel
 
     # -------------------------------------------------------------- drawing
-    def _polyline(self, hdc, app, points, color, width):
-        pen = app.get_pen(color, max(1, int(width)))
-        old = gdi32.SelectObject(hdc, pen)
-        x0, y0 = points[0]
-        gdi32.MoveToEx(hdc, int(round(x0)), int(round(y0)), None)
-        for px, py in points[1:]:
-            gdi32.LineTo(hdc, int(round(px)), int(round(py)))
-        gdi32.SelectObject(hdc, old)
+    def _arc_color(self, st, fraction):
+        """Return the shared soft Aurora scale color."""
+        return scale_color(st, fraction)
 
-    def _arc(self, hdc, app, cx, cy, r, f0, f1, color, width, st):
-        """Draw an arc segment with a soft glow and rounded end caps."""
-        steps = max(12, int((f1 - f0) * SWEEP / 2))
-        points = [self._point(cx, cy, r, f0 + (f1 - f0) * i / steps)
-                  for i in range(steps + 1)]
-        glow = mix(st['window'], color, 0.40)
-        self._polyline(hdc, app, points, glow, width + 5 * app.scale)
-        for px, py in (points[0], points[-1]):
-            size = int(width + 5 * app.scale)
-            fill_round_rect(hdc, app, int(px) - size // 2, int(py) - size // 2,
-                            size, size, size // 2, glow)
-        self._polyline(hdc, app, points, color, width)
-        for px, py in (points[0], points[-1]):
-            size = int(width)
-            fill_round_rect(hdc, app, int(px) - size // 2, int(py) - size // 2,
-                            size, size, size // 2, color)
+    def _arc_region(self, cx, cy, r, width, steps=64):
+        """Create a closed region for the arc band."""
+        outer = [self._point(cx, cy, r + width * 0.5, i / steps)
+                 for i in range(steps + 1)]
+        inner = [self._point(cx, cy, r - width * 0.5, i / steps)
+                 for i in range(steps + 1)]
+        points = outer + inner[::-1]
+        array = (wintypes.POINT * len(points))(
+            *[wintypes.POINT(int(round(px)), int(round(py)))
+              for px, py in points])
+        return gdi32.CreatePolygonRgn(array, len(points), 2)  # WINDING
+
+    def _gradient_arc(self, hdc, app, cx, cy, r, width, st):
+        """Fill the scale with a smooth horizontal teal-to-violet gradient."""
+        s = app.scale
+        blend = mix(st['highlight'], st['highlight2'], 0.5)
+        low = self._arc_color(st, 0.0)
+        mid = self._arc_color(st, SPLIT)
+        high = self._arc_color(st, 1.0)
+
+        top = int(cy - r - width * 2)
+        height = max(1, int(r + width * 3))
+        clip = wintypes.RECT(int(cx - r - width * 2), top,
+                             int(cx + r + width * 2), top + height)
+
+        # Two low-contrast halos replace the old bright neon glow.
+        for extra, tint in ((8, 0.10), (4, 0.20)):
+            band = width + max(2, int(extra * s))
+            region = self._arc_region(cx, cy, r, band)
+            if not region:
+                continue
+            saved = gdi32.SaveDC(hdc)
+            try:
+                gdi32.ExtSelectClipRgn(hdc, region, RGN_AND)
+                user32.FillRect(hdc, ctypes.byref(clip),
+                                app.get_brush(mix(st['window'], blend, tint)))
+            finally:
+                gdi32.RestoreDC(hdc, saved)
+                gdi32.DeleteObject(region)
+
+        region = self._arc_region(cx, cy, r, width)
+        if region:
+            x0 = int(self._point(cx, cy, r, 0.0)[0])
+            x1 = int(self._point(cx, cy, r, SPLIT)[0])
+            x2 = int(self._point(cx, cy, r, 1.0)[0])
+            saved = gdi32.SaveDC(hdc)
+            try:
+                gdi32.ExtSelectClipRgn(hdc, region, RGN_AND)
+                fill_gradient_h(hdc, x0, top, max(1, x1 - x0), height,
+                                low, mid)
+                fill_gradient_h(hdc, x1, top, max(1, x2 - x1), height,
+                                mid, high)
+            finally:
+                gdi32.RestoreDC(hdc, saved)
+                gdi32.DeleteObject(region)
+
+        cap = max(1, int(width))
+        for fraction in (0.0, 1.0):
+            px, py = self._point(cx, cy, r, fraction)
+            fill_round_rect(hdc, app, int(px) - cap // 2,
+                            int(py) - cap // 2, cap, cap, cap // 2,
+                            self._arc_color(st, fraction))
 
     def _tick(self, hdc, app, cx, cy, r, fraction, major, color, s):
         inner = r - 2 * s
@@ -174,8 +220,6 @@ class VUMeter(Widget):
         st = style_of(app)
         x, y, w, h = self.x, self.y, self.w, self.h
         cx, cy, r = self._geometry()
-        cyan = st['highlight']
-        magenta = st['highlight2']
         radius = max(6, int(10 * s))
 
         if self.focused or self._dragging:
@@ -191,20 +235,23 @@ class VUMeter(Widget):
             self._timer = True
             app.set_timer(50, self._on_peak_timer)
 
-        arc_width = 6 * s
-        self._arc(hdc, app, cx, cy, r, 0.0, SPLIT, cyan, arc_width, st)
-        self._arc(hdc, app, cx, cy, r, SPLIT, 1.0, magenta, arc_width, st)
+        arc_width = max(5, int(6 * s))
+        self._gradient_arc(hdc, app, cx, cy, r, arc_width, st)
 
         for i in range(len(self.scale)):
             fraction = self.scale[i][1]
-            color = cyan if fraction < SPLIT else magenta
-            self._tick(hdc, app, cx, cy, r, fraction, True, color, s)
+            color = self._arc_color(st, fraction)
+            major = mix(st['dark'], color, 0.50)
+            if abs(fraction - SPLIT) < 1e-6:
+                major = mix(st['windowText'], color, 0.35)
+            self._tick(hdc, app, cx, cy, r, fraction, True, major, s)
             if i + 1 < len(self.scale):
                 nxt = self.scale[i + 1][1]
                 for part in (0.25, 0.5, 0.75):
                     mid = fraction + (nxt - fraction) * part
                     self._tick(hdc, app, cx, cy, r, mid, False,
-                               cyan if mid < SPLIT else magenta, s)
+                               mix(st['mid'], self._arc_color(st, mid),
+                                   0.45), s)
 
         label_r = r + 14 * s
         half_w = int(16 * s)
@@ -214,8 +261,10 @@ class VUMeter(Widget):
             rc = wintypes.RECT(int(lx) - half_w, int(ly) - half_h,
                                int(lx) + half_w, int(ly) + half_h)
             gdi32.SetBkMode(hdc, TRANSPARENT)
-            gdi32.SetTextColor(hdc, COLORREF(*(
-                cyan if fraction < SPLIT else magenta)))
+            label_color = mix(st['dark'], self._arc_color(st, fraction), 0.48)
+            if abs(fraction - SPLIT) < 1e-6:
+                label_color = mix(st['windowText'], label_color, 0.25)
+            gdi32.SetTextColor(hdc, COLORREF(*label_color))
             of = gdi32.SelectObject(hdc, app.get_font(10, True))
             user32.DrawTextW(hdc, text, -1, ctypes.byref(rc),
                              DT_CENTER | DT_VCENTER | DT_SINGLELINE)
@@ -233,7 +282,7 @@ class VUMeter(Widget):
         gdi32.SetTextColor(hdc, COLORREF(*st['window']))
         user32.DrawTextW(hdc, self.label, -1, ctypes.byref(shadow),
                          DT_CENTER | DT_VCENTER | DT_SINGLELINE)
-        gdi32.SetTextColor(hdc, COLORREF(*st['dark']))
+        gdi32.SetTextColor(hdc, COLORREF(*mix(st['dark'], st['mid'], 0.30)))
         user32.DrawTextW(hdc, self.label, -1, ctypes.byref(rc),
                          DT_CENTER | DT_VCENTER | DT_SINGLELINE)
         gdi32.SelectObject(hdc, of)
@@ -242,9 +291,9 @@ class VUMeter(Widget):
         if self.peak_hold and self.peak > self.value + 0.004:
             p0 = self._point(cx, cy, r - 7 * s, self.peak)
             p1 = self._point(cx, cy, r + 13 * s, self.peak)
-            marker = (226, 246, 255)
-            pen = app.get_pen(mix(st['window'], marker, 0.35),
-                              max(3, int(4 * s)))
+            marker = mix(st['windowText'], st['highlight'], 0.30)
+            pen = app.get_pen(mix(st['window'], marker, 0.30),
+                              max(3, int(3 * s)))
             old = gdi32.SelectObject(hdc, pen)
             gdi32.MoveToEx(hdc, int(p0[0]), int(p0[1]), None)
             gdi32.LineTo(hdc, int(p1[0]), int(p1[1]))
@@ -258,13 +307,14 @@ class VUMeter(Widget):
             fill_round_rect(hdc, app, int(p1[0]) - dot, int(p1[1]) - dot,
                             dot * 2, dot * 2, dot, marker)
 
-        glow = mix((255, 255, 255), st['window'], 0.45)
-        pen = app.get_pen(glow, max(3, int(5 * s)))
+        needle = mix(st['windowText'], st['dark'], 0.35)
+        glow = mix(st['window'], needle, 0.35)
+        pen = app.get_pen(glow, max(3, int(4 * s)))
         old = gdi32.SelectObject(hdc, pen)
         gdi32.MoveToEx(hdc, cx, cy, None)
         gdi32.LineTo(hdc, int(tip[0]), int(tip[1]))
         gdi32.SelectObject(hdc, old)
-        pen = app.get_pen((245, 245, 255), max(2, int(2 * s)))
+        pen = app.get_pen(needle, max(1, int(2 * s)))
         old = gdi32.SelectObject(hdc, pen)
         gdi32.MoveToEx(hdc, cx, cy, None)
         gdi32.LineTo(hdc, int(tip[0]), int(tip[1]))
@@ -277,7 +327,7 @@ class VUMeter(Widget):
                           pr, st['border'], max(1, int(s)))
         dot = max(2, int(3 * s))
         fill_round_rect(hdc, app, cx - dot, cy - dot, dot * 2, dot * 2,
-                        dot, st['mid'])
+                        dot, mix(st['mid'], st['highlight'], 0.18))
 
         rc = wintypes.RECT(int(x + 10 * s), int(y + h - 24 * s),
                            int(x + 40 * s), int(y + h - 6 * s))

@@ -1,6 +1,6 @@
 """Owner-drawn button widget."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class Button(Widget):
@@ -42,16 +42,17 @@ class Button(Widget):
             top = st['buttonPressed'] if self.pressed else st['buttonHover']
             bottom = st['buttonPressed'] if self.pressed else st['button']
             border = st['focus'] if self.focused else (
-                st['highlight'] if self.hovered else st['border'])
+                scale_color(st, 0.55) if self.hovered else st['border'])
             fg = st['buttonText']
             glow = st['glow']
         else:
             acc = self.accent
-            top = lighten(acc, 0.18)
-            bottom = darken(acc, 0.12)
-            border = lighten(acc, 0.35) if (self.hovered or self.focused) else darken(acc, 0.15)
-            fg = (255, 255, 255)
-            glow = mix(st['window'], acc, 0.45)
+            top = mix(acc, st['windowText'], 0.10)
+            bottom = mix(acc, st['window'], 0.12)
+            border = mix(acc, st['windowText'], 0.25) \
+                if (self.hovered or self.focused) else mix(acc, st['window'], 0.15)
+            fg = st['windowText']
+            glow = mix(st['window'], acc, 0.30)
 
         if self.hovered or self.focused:
             stroke_round_rect(hdc, app, x - 1, y - 1, w + 2, h + 2, r + 1,

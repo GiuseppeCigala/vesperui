@@ -1,6 +1,6 @@
 """Fusion-style owner-drawn radio button."""
 from .common import *  # noqa: F401,F403
-from .style import style_of
+from .style import scale_color, style_of
 
 
 class RadioButton(Widget):
@@ -66,15 +66,17 @@ class RadioButton(Widget):
                               radius + 1, st['glow'], max(2, int(2 * s)))
 
         border = st['focus'] if self.focused else (
-            st['highlight'] if (self._checked or self.hovered) else st['border'])
-        fill_round_rect(hdc, app, bx, by, box, box, radius, st['base'])
+            scale_color(st, 0.55) if (self._checked or self.hovered)
+            else st['border'])
+        fill_round_gradient_v(hdc, app, bx, by, box, box, radius,
+                              lighten(st['base'], 0.03), st['base'])
         stroke_round_rect(hdc, app, bx, by, box, box, radius, border, max(1, int(s)))
 
         if self._checked:
             dot = max(3, int(7 * s))
             off = (box - dot) // 2
             fill_round_rect(hdc, app, bx + off, by + off, dot, dot,
-                            dot // 2, st['highlight'])
+                            dot // 2, scale_color(st, 0.65))
 
         rc = wintypes.RECT(bx + box + int(7 * s), self.y,
                            self.x + self.w, self.y + self.h)
