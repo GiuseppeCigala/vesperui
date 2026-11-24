@@ -1,8 +1,8 @@
 # VesperUI
 
 [![Tests](https://github.com/GiuseppeCigala/vesperui/actions/workflows/tests.yml/badge.svg)](https://github.com/GiuseppeCigala/vesperui/actions/workflows/tests.yml)
-[![PyPI](https://img.shields.io/pypi/v/vesperui.svg)](https://pypi.org/project/vesperui/)
-[![Python versions](https://img.shields.io/pypi/pyversions/vesperui.svg)](https://pypi.org/project/vesperui/)
+[![PyPI](https://img.shields.io/pypi/v/vesperui.svg?logo=pypi&logoColor=white)](https://pypi.org/project/vesperui/)
+[![Python versions](https://img.shields.io/pypi/pyversions/vesperui.svg?logo=python&logoColor=white)](https://pypi.org/project/vesperui/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Native Windows widgets with an evening glow.**
