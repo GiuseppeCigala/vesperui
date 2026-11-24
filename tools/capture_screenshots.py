@@ -235,10 +235,16 @@ def capture(app, path, max_width=1400, trim=False):
 def main():
     out_dir = os.path.join(ROOT, "docs", "images")
     os.makedirs(out_dir, exist_ok=True)
-    capture(showcase_common.build_app(),
-            os.path.join(out_dir, "showcase-common.png"))
-    capture(showcase_audio.build_app(),
-            os.path.join(out_dir, "showcase-audio.png"))
+
+    common = showcase_common.build_app()
+    common.width, common.height = 1480, 1570
+    capture(common, os.path.join(out_dir, "showcase-common.png"),
+            max_width=2000)
+
+    audio = showcase_audio.build_app()
+    audio.width, audio.height = 1200, 1220
+    capture(audio, os.path.join(out_dir, "showcase-audio.png"),
+            max_width=2000)
     return 0
 
 

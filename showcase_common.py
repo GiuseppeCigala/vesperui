@@ -7,8 +7,9 @@ anything.
 
 The window is organised in two columns:
 
-* left  - a ScrollView with input, selection, action and overflow groups;
-* right - a TabBar, a ListView, a Canvas, a shadow card and shortcuts.
+* left  - input, selection, vertical and overflow groups;
+* right - a TabBar, a ListView, a Canvas, a shadow card, the colour
+  picker, actions and the dialog launchers.
 
 Audio widgets (meters, fader, knob, transport and spectrum) live in
 ``showcase_audio.py``.
@@ -111,7 +112,7 @@ def build_app():
     main.stretch = 1
     left = ui.ScrollView(padding=10, spacing=10, bg=style['panel'])
     left.stretch = 1
-    right = ui.Panel(layout=ui.VBoxLayout(padding=0, spacing=10))
+    right = ui.ScrollView(padding=10, spacing=10, bg=None)
     right.stretch = 1
     main.add(left)
     main.add(right)
@@ -231,7 +232,6 @@ def build_app():
     # ------------------------------------------------------------ color picker
     color_group = ui.GroupBox('Color picker', bg=style['card'],
                               layout=ui.VBoxLayout(padding=10, spacing=8))
-    left.add(color_group)
     color_label = ui.Label('Color: #00D6FF')
 
     def on_color(rgb):
@@ -248,7 +248,6 @@ def build_app():
     # -------------------------------------------------------------- actions
     actions = ui.GroupBox('Actions', bg=style['card'],
                           layout=ui.VBoxLayout(padding=10, spacing=8))
-    left.add(actions)
 
     ping_count = [0]
 
@@ -297,7 +296,6 @@ def build_app():
     # -------------------------------------------------------------- dialogs
     dialogs_group = ui.GroupBox('Dialogs', bg=style['card'],
                                 layout=ui.VBoxLayout(padding=10, spacing=8))
-    left.add(dialogs_group)
     dialog_info = ui.Label('No dialog opened yet.')
 
     def show_dialog_result(message):
@@ -471,6 +469,9 @@ def build_app():
     card_buttons.add(ui.Button('Accent', accent=ui.scale_color(style, 0.85)))
     card.add(card_buttons)
     right.add(card)
+    right.add(color_group)
+    right.add(actions)
+    right.add(dialogs_group)
 
     # ------------------------------------------------------------ status bar
     status = ui.Panel(layout=ui.HBoxLayout(padding=8, spacing=10),

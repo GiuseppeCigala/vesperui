@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- The classic showcase now keeps both columns evenly filled, and the showcase
+  screenshots in the README are regenerated so every widget fits in the frame.
+
 ## [0.1.2] - 2026-11-23
 
 ### Changed
