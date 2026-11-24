@@ -20,5 +20,6 @@ single dark visual style.
 ## More
 
 - [Project README](../README.md)
+- [PyPI package](https://pypi.org/project/vesperui/)
 - [Contributing](../CONTRIBUTING.md)
 - [Changelog](../CHANGELOG.md)

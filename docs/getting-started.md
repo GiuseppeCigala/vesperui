@@ -5,6 +5,8 @@ by every widget.
 
 ## Install
 
+VesperUI is published on [PyPI](https://pypi.org/project/vesperui/):
+
 ```bash
 python -m pip install vesperui
 ```

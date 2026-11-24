@@ -68,7 +68,11 @@ distributions and uploads them with
 [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) when a
 GitHub release is published. No API token is stored in the repository.
 
-One-time setup:
+> Trusted Publishing is already configured for this repository: `v0.1.2` was
+> the first release published this way. Future releases only need the version,
+> changelog and tag steps above, followed by a new GitHub release.
+
+One-time setup (for forks or a new project):
 
 1. Create the project on PyPI (or configure a pending trusted publisher).
 2. In the PyPI project settings, add a trusted publisher with:

@@ -40,6 +40,8 @@ VesperUI will raise a clear `ImportError` on non-Windows platforms.
 
 ## Installation
 
+VesperUI is available on [PyPI](https://pypi.org/project/vesperui/):
+
 ```bash
 python -m pip install vesperui
 ```
@@ -216,6 +218,7 @@ exits, which is a fast smoke test for layout and GDI regressions.
 - [Styling and themes](docs/styling.md)
 - [Architecture](docs/architecture.md)
 - [Releasing](docs/releasing.md)
+- [PyPI package](https://pypi.org/project/vesperui/)
 
 ## Testing
 

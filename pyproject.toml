@@ -54,6 +54,7 @@ Documentation = "https://github.com/GiuseppeCigala/vesperui/tree/main/docs"
 Repository = "https://github.com/GiuseppeCigala/vesperui"
 Issues = "https://github.com/GiuseppeCigala/vesperui/issues"
 Changelog = "https://github.com/GiuseppeCigala/vesperui/blob/main/CHANGELOG.md"
+PyPI = "https://pypi.org/project/vesperui/"
 
 [tool.setuptools.dynamic]
 version = { attr = "vesperui.__version__" }
